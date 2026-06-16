@@ -69,27 +69,29 @@ public class Wanderlust : MonoBehaviour
 	void Start()
 	{
 		int statusPositionIndex = Rnd.Range(0, 4);
+		statusPositionIndex = 0;
         pairs.Add(new string[2]);
+		string statusLightPosition = "";
         switch (statusPositionIndex)
 		{
 			case 0:
 				statuslight.transform.localPosition = TopLeftPosition;
 				pairs[0]=new string[] {"LU","LL"};
-				Log("Top Left Status Light");
-				break;
+				statusLightPosition = "top left";
+                break;
             case 1:
                 statuslight.transform.localPosition = BottomRightPosition;
                 pairs[0] = new string[] { "LU", "LR" };
-                Log("Bottom Right Status Light");
+                statusLightPosition = "bottom right";
                 break;
             case 2:
                 statuslight.transform.localPosition = BottomLeftPosition;
                 pairs[0] = new string[] { "LU", "LD" };
-                Log("Bottom Left Status Light");
+                statusLightPosition = "bottom left";
                 break;
 			case 3:
 				pairs.RemoveAt(0);
-                Log("Top Right Status Light");
+                statusLightPosition = "top right";
                 break;
         }
 		cube = new LocalCube();
@@ -117,6 +119,13 @@ public class Wanderlust : MonoBehaviour
 			Log("Pair " + (i + 1) + ": " + pairs[i][0] + "," + pairs[i][1]);
 
         }
+		Log("Intital Rotations");
+		Log("Status Light is in the " + statusLightPosition + " corner.");
+		bool statusMoved = statusLightPosition != "top right";
+		if (statusMoved) 
+		{
+			cube.Rotate(,, true);
+		}
     }
     private void Log(object s)
     {

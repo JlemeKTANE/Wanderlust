@@ -1,4 +1,6 @@
-﻿public class LocalCube
+﻿using UnityEngine;
+
+public class LocalCube
 {
     public enum Face { Left, Right, Up, Down, Front, Back }
     //vairable is the local face, the value is the global face
@@ -168,9 +170,9 @@
             Left = oldCube.Left;
             Right = oldCube.Right;
             Up = oldCube.Front;
-            Front = oldCube.Back;
-            Back = oldCube.Down;
-            Down = oldCube.Up;
+            Down = oldCube.Back;
+            Front = oldCube.Down;
+            Back = oldCube.Up;
         }
 
         //Left,Right OR Right,Left -> 
@@ -187,17 +189,17 @@
             if (evenModules)
             {
                 Up = oldCube.Up;
-                Front = oldCube.Down;
-                Back = oldCube.Back;
-                Down = oldCube.Front;
+                Down = oldCube.Down;
+                Front = oldCube.Back;
+                Back = oldCube.Front;
             }
 
             else
             {
                 Up = oldCube.Down;
-                Front = oldCube.Up;
-                Back = oldCube.Front;
-                Down = oldCube.Back;
+                Down = oldCube.Up;
+                Front = oldCube.Front;
+                Back = oldCube.Back;
             }
         }
 
@@ -206,27 +208,26 @@
         //ODD(Left, Right, Down, Up, Back, Front)
 
         else if
-            ((desiredFace == Face.Left && targetFace == Face.Right) ||
-            (desiredFace == Face.Right && targetFace == Face.Left))
+            ((desiredFace == Face.Up && targetFace == Face.Down) ||
+            (desiredFace == Face.Down && targetFace == Face.Up))
         {
             Up = oldCube.Down;
-            Front = oldCube.Up;
+            Down = oldCube.Up;
 
             if (evenModules)
             {
                 Left = oldCube.Right;
                 Right = oldCube.Left;
-                Front = oldCube.Up;
-                Back = oldCube.Front;
-                Down = oldCube.Back;
+                Front = oldCube.Front;
+                Back = oldCube.Back;
             }
 
             else
             {
                 Left = oldCube.Left;
                 Right = oldCube.Right;
-                Back = oldCube.Back;
-                Down = oldCube.Front;
+                Front = oldCube.Back;
+                Back = oldCube.Front;
             }
         }
 
@@ -238,17 +239,15 @@
             ((desiredFace == Face.Front && targetFace == Face.Back) ||
             (desiredFace == Face.Back && targetFace == Face.Front))
         {
-            Back = oldCube.Back;
-            Down = oldCube.Front;
+            Front = oldCube.Back;
+            Back = oldCube.Front;
 
             if (evenModules)
             {
                 Left = oldCube.Left;
                 Right = oldCube.Right;
                 Up = oldCube.Down;
-                Front = oldCube.Up;
-                Back = oldCube.Back;
-                Down = oldCube.Front;
+                Down = oldCube.Up;
             }
 
             else
@@ -256,7 +255,7 @@
                 Left = oldCube.Right;
                 Right = oldCube.Left;
                 Up = oldCube.Up;
-                Front = oldCube.Down;
+                Down = oldCube.Down;
             }
         }
 
@@ -264,6 +263,48 @@
 
 
 
+    }
+    public Face GetFace(string letters)
+    {
+        if (letters[0] == 'L')
+        {
+            switch (letters[1])
+            {
+                case 'L':
+                    return Left;
+                case 'R':
+                    return Right;
+                case 'U':
+                    return Up;
+                case 'D':
+                    return Down;
+                case 'F':
+                    return Front;
+                case 'B':
+                    return Back;
+
+            }
+        }
+        else
+        {
+            switch (letters[1])
+            {
+                case 'L':
+                    return Face.Left;
+                case 'R':
+                    return Face.Right;
+                case 'U':
+                    return Face.Up;
+                case 'D':
+                    return Face.Down;
+                case 'F':
+                    return Face.Front;
+                case 'B':
+                    return Face.Back;
+
+            }
+        }
+        return Face.Left;
     }
 
     public LocalCube Clone()
@@ -277,5 +318,14 @@
             Front = this.Front,
             Back = this.Back
         };
+    }
+    public string ToString()
+    {
+        return "Local Left = Global " + Left + "\n"
+            + "Local Right = Global " + Right + "\n"
+            + "Local Up = Global " + Up + "\n"
+            + "Local Down = Global " + Down + "\n"
+            + "Local Front = Global " + Front + "\n"
+            + "Local Back = Global " + Back + "\n";
     }
 }
