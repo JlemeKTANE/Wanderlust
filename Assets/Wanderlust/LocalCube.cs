@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 public class LocalCube
 {
@@ -21,19 +22,24 @@ public class LocalCube
     }
     //I hate this so much - Hawker
     /// <summary>
-    /// 
+    /// Rotates the cube so the desired face is at the target one
     /// </summary>
-    /// <param name="desiredFace">The local face we want to move</param>
-    /// <param name="targetFace">The "position" of the local face we want to move to</param>
+    /// <param name="desiredStr">The face we want to move</param>
+    /// <param name="targetStr">The "position" of the desired face we want to move to</param>
     /// <param name="evenModules">If there are an even amount of modules</param>
-    public void Rotate(Face desiredFace, Face targetFace, bool evenModules)
+    public void Rotate(string desiredStr, string targetStr, bool evenModules)
     {
+        //Convert the string to the local counterpart
+        Face desiredFace = ParseFace(desiredStr);
+        Face targetFace = ParseFace(targetStr);
+
         LocalCube oldCube = this.Clone();
         //if they are the same, then we don't need to do anything
         if (desiredFace == targetFace)
         {
             return;
         }
+
         #region Example
         //[R, L, F, B, U, D]
         //[B, F, R, L, U, D]
@@ -260,54 +266,53 @@ public class LocalCube
         }
 
         //(Left, Right, Up, Down, Front, Back)
-
-
-
     }
-    public Face GetFace(string letters)
+
+    /// <summary>
+    /// Converrts a code into its respective local face
+    /// </summary>
+    /// <param name="code"></param>
+    /// <returns></returns>
+    public Face ParseFace(string code)
     {
-        if (letters[0] == 'L')
-        {
-            switch (letters[1])
-            {
-                case 'L':
-                    return Left;
-                case 'R':
-                    return Right;
-                case 'U':
-                    return Up;
-                case 'D':
-                    return Down;
-                case 'F':
-                    return Front;
-                case 'B':
-                    return Back;
+        Face face = GetLocalFace(code[1]);
 
-            }
-        }
-        else
+        if (code[0] == 'L')
         {
-            switch (letters[1])
-            {
-                case 'L':
-                    return Face.Left;
-                case 'R':
-                    return Face.Right;
-                case 'U':
-                    return Face.Up;
-                case 'D':
-                    return Face.Down;
-                case 'F':
-                    return Face.Front;
-                case 'B':
-                    return Face.Back;
-
-            }
+            // already local
+            return face;
         }
-        return Face.Left;
+
+        // convert global to local
+        return GetLocalFaceOfGlobalFace(face);
+    }
+    private Face GetLocalFace(char c)
+    {
+        switch (c)
+        {
+            case 'L': return Face.Left;
+            case 'R': return Face.Right;
+            case 'U': return Face.Up;
+            case 'D': return Face.Down;
+            case 'F': return Face.Front;
+            case 'B': return Face.Back;
+            default: throw new ArgumentException("Invalid face character");
+        }
     }
 
-    public LocalCube Clone()
+    private Face GetLocalFaceOfGlobalFace(Face globalFace)
+    {
+        if (Left == globalFace) return Face.Left;
+        if (Right == globalFace) return Face.Right;
+        if (Up == globalFace) return Face.Up;
+        if (Down == globalFace) return Face.Down;
+        if (Front == globalFace) return Face.Front;
+        if (Back == globalFace) return Face.Back;
+
+        throw new Exception("Impossible cube state");
+    }
+
+    private LocalCube Clone()
     {
         return new LocalCube
         {
@@ -319,7 +324,8 @@ public class LocalCube
             Back = this.Back
         };
     }
-    public string ToString()
+
+    public override string ToString()
     {
         return "Local Left = Global " + Left + "\n"
             + "Local Right = Global " + Right + "\n"

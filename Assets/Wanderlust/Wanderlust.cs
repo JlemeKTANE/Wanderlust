@@ -62,35 +62,33 @@ public class Wanderlust : MonoBehaviour
 		ButtonD.OnInteract += delegate () { buttonpressed(); return false; };
 		ButtonF.OnInteract += delegate () { buttonpressed(); return false; };
 		ButtonB.OnInteract += delegate () { buttonpressed(); return false; };
-		Debug.Log("hi");
 
         ModuleId = ModuleIdCounter++;
     }
 	void Start()
 	{
 		int statusPositionIndex = Rnd.Range(0, 4);
-		statusPositionIndex = 0;
-        pairs.Add(new string[2]);
+		statusPositionIndex = 3;
 		string statusLightPosition = "";
+		string[] statusLightPair = null;
         switch (statusPositionIndex)
 		{
 			case 0:
 				statuslight.transform.localPosition = TopLeftPosition;
-				pairs[0]=new string[] {"LU","LL"};
+                statusLightPair = new string[] {"LU","LL"};
 				statusLightPosition = "top left";
                 break;
             case 1:
                 statuslight.transform.localPosition = BottomRightPosition;
-                pairs[0] = new string[] { "LU", "LR" };
+                statusLightPair = new string[] { "LU", "LR" };
                 statusLightPosition = "bottom right";
                 break;
             case 2:
                 statuslight.transform.localPosition = BottomLeftPosition;
-                pairs[0] = new string[] { "LU", "LD" };
+                statusLightPair = new string[] { "LU", "LD" };
                 statusLightPosition = "bottom left";
                 break;
 			case 3:
-				pairs.RemoveAt(0);
                 statusLightPosition = "top right";
                 break;
         }
@@ -100,6 +98,7 @@ public class Wanderlust : MonoBehaviour
 		ModuleNum = Bomb.GetSolvableModuleIDs().Count();
 		SerialNumber = Bomb.GetSerialNumber().ToUpper();
 		int[] SerialNumberToNum = SerialNumber.Select(x => char.IsDigit(x) ? int.Parse(""+x):x-'A'+1 ).ToArray();
+		List<string> indexCalculationLogs = new List<string>();
 
 		for (int i = 0; i < SerialNumberToNum.Length; i++)
 		{
@@ -109,23 +108,35 @@ public class Wanderlust : MonoBehaviour
 			{
 				pairs.Add(new string[2]);
 			}
-			int pairIndex = statusPositionIndex == 3 ? i / 2 : (i / 2) + 1;
-            pairs[pairIndex][i % 2] = edgeworkGrid[Row, Column];
+            pairs[i / 2][i % 2] = edgeworkGrid[Row, Column];
 
-
+			//store for logging purposes
+			indexCalculationLogs.Add(edgeworkGrid[Row, Column] + " | Row: (" + SerialNumberToNum[i] + " + " + BatteryNum + ") % 4 = " + Column + " | Col: (" + SerialNumberToNum[i] + " - " + PortNum + ") % 3 = " + Row);
         }
-		for (int i = 0; i < pairs.Count; i++)
+        for (int i = 0; i < pairs.Count; i++)
 		{
 			Log("Pair " + (i + 1) + ": " + pairs[i][0] + "," + pairs[i][1]);
 
         }
 		Log("Intital Rotations");
 		Log("Status Light is in the " + statusLightPosition + " corner.");
-		bool statusMoved = statusLightPosition != "top right";
-		if (statusMoved) 
+		if (statusLightPair != null) 
 		{
-			cube.Rotate(,, true);
+            Log("Letter Pair 1:" + statusLightPair[0] + ", " + statusLightPair[1]);
+            cube.Rotate(statusLightPair[0], statusLightPair[1], true);
+            Log("Current Cube Rotation\n" + cube);
 		}
+
+		for (int i = 0; i < pairs.Count; i++)
+		{
+			string[] pair = pairs[i];
+			Log("Letter Pair " + (i + 1 + (statusLightPair != null ? 1 : 0)) + ": " + pair[0] + ", " + pair[1]);
+			Log(indexCalculationLogs[i * 2]);
+            Log(indexCalculationLogs[(i * 2) + 1]);
+
+            cube.Rotate(pair[0], pair[1], true);
+            Log("Current Cube Rotation\n" + cube);
+        }
     }
     private void Log(object s)
     {
