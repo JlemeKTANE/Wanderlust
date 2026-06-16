@@ -5,11 +5,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
+using Rnd = UnityEngine.Random;
 
 public class Wanderlust : MonoBehaviour
 {
 	public KMBombInfo Bomb;
 	public KMAudio Audio;
+	public GameObject statuslight;
+	public Vector3 TopRightPosition;
+	public Vector3 TopLeftPosition;
+	public Vector3 BottomRightPosition;
+	public Vector3 BottomLeftPosition;
 
 	public KMSelectable ButtonL, ButtonR, ButtonU, ButtonD, ButtonF, ButtonB;
 
@@ -30,6 +36,7 @@ public class Wanderlust : MonoBehaviour
     {"GR", "LD", "LB", "GL"},
     {"GD", "GF", "LR", "LU"},
 };
+	private LocalCube cube;
 
     /// <summary>
     /// Converts c# modulo from (-modulo, modulo) to [0, modulo)
@@ -61,6 +68,31 @@ public class Wanderlust : MonoBehaviour
     }
 	void Start()
 	{
+		int statusPositionIndex = Rnd.Range(0, 4);
+        pairs.Add(new string[2]);
+        switch (statusPositionIndex)
+		{
+			case 0:
+				statuslight.transform.localPosition = TopLeftPosition;
+				pairs[0]=new string[] {"LU","LL"};
+				Log("Top Left Status Light");
+				break;
+            case 1:
+                statuslight.transform.localPosition = BottomRightPosition;
+                pairs[0] = new string[] { "LU", "LR" };
+                Log("Bottom Right Status Light");
+                break;
+            case 2:
+                statuslight.transform.localPosition = BottomLeftPosition;
+                pairs[0] = new string[] { "LU", "LD" };
+                Log("Bottom Left Status Light");
+                break;
+			case 3:
+				pairs.RemoveAt(0);
+                Log("Top Right Status Light");
+                break;
+        }
+		cube = new LocalCube();
 		BatteryNum = Bomb.GetBatteryCount();
 		PortNum = Bomb.GetPortCount();
 		ModuleNum = Bomb.GetSolvableModuleIDs().Count();
@@ -75,11 +107,8 @@ public class Wanderlust : MonoBehaviour
 			{
 				pairs.Add(new string[2]);
 			}
-			Debug.Log("Column " + Column);
-            Debug.Log("Row " + Row);
-			Debug.Log("Pair Index " + i / 2);
-			Debug.Log("Rotation Index " + i % 2);
-            pairs[i / 2][i % 2] = edgeworkGrid[Row, Column];
+			int pairIndex = statusPositionIndex == 3 ? i / 2 : (i / 2) + 1;
+            pairs[pairIndex][i % 2] = edgeworkGrid[Row, Column];
 
 
         }

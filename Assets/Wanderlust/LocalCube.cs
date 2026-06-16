@@ -1,24 +1,23 @@
 ﻿public class LocalCube
 {
-
-
     public enum Face { Left, Right, Up, Down, Front, Back }
-
-    public Face left, right, up, down, front, back;
-
+    //vairable is the local face, the value is the global face
+    public Face Left { get; private set; }
+    public Face Right { get; private set; }
+    public Face Up { get; private set; }
+    public Face Down { get; private set; }
+    public Face Front { get; private set; }
+    public Face Back { get; private set; }
     public LocalCube()
     {
-        left = Face.Left;
-        right = Face.Right;
-        up = Face.Up;
-        down = Face.Down;
-        front = Face.Front;
-        back = Face.Back;
+        Left = Face.Left;
+        Right = Face.Right;
+        Up = Face.Up;
+        Down = Face.Down;
+        Front = Face.Front;
+        Back = Face.Back;
     }
-
-
     //I hate this so much - Hawker
-
     /// <summary>
     /// 
     /// </summary>
@@ -28,20 +27,17 @@
     public void Rotate(Face desiredFace, Face targetFace, bool evenModules)
     {
         LocalCube oldCube = this.Clone();
-
         //if they are the same, then we don't need to do anything
         if (desiredFace == targetFace)
         {
             return;
         }
-
-
         #region Example
         //[R, L, F, B, U, D]
         //[B, F, R, L, U, D]
         //what is currently at index 3 should be at index 0
-        //what is currently local down, should be local left
-        //left = oldCube.down;
+        //what is currently local Down, should be local Left
+        //Left = oldCube.Down;
         #endregion
 
         //Left,Up OR
@@ -54,12 +50,12 @@
             (desiredFace == Face.Right && targetFace == Face.Down) ||
             (desiredFace == Face.Down && targetFace == Face.Left))
         {
-            left = oldCube.down;
-            right = oldCube.up;
-            up = oldCube.left;
-            down = oldCube.right;
-            front = oldCube.front;
-            back = oldCube.back;
+            Left = oldCube.Down;
+            Right = oldCube.Up;
+            Up = oldCube.Left;
+            Down = oldCube.Right;
+            Front = oldCube.Front;
+            Back = oldCube.Back;
         }
 
         //Left,Up OR
@@ -73,12 +69,12 @@
             (desiredFace == Face.Right && targetFace == Face.Down) ||
             (desiredFace == Face.Down && targetFace == Face.Left))
         {
-            left = oldCube.down;
-            right = oldCube.up;
-            up = oldCube.left;
-            down = oldCube.right;
-            front = oldCube.front;
-            back = oldCube.back;
+            Left = oldCube.Down;
+            Right = oldCube.Up;
+            Up = oldCube.Left;
+            Down = oldCube.Right;
+            Front = oldCube.Front;
+            Back = oldCube.Back;
         }
 
         //Left,Down OR
@@ -92,12 +88,12 @@
             (desiredFace == Face.Right && targetFace == Face.Up) ||
             (desiredFace == Face.Up && targetFace == Face.Left))
         {
-            left = oldCube.up;
-            right = oldCube.down;
-            up = oldCube.right;
-            down = oldCube.left;
-            front = oldCube.front;
-            back = oldCube.back;
+            Left = oldCube.Up;
+            Right = oldCube.Down;
+            Up = oldCube.Right;
+            Down = oldCube.Left;
+            Front = oldCube.Front;
+            Back = oldCube.Back;
         }
 
         //Left,Front OR
@@ -111,12 +107,12 @@
             (desiredFace == Face.Right && targetFace == Face.Back) ||
             (desiredFace == Face.Back && targetFace == Face.Left))
         {
-            left = oldCube.back;
-            right = oldCube.front;
-            up = oldCube.up;
-            down = oldCube.down;
-            front = oldCube.left;
-            back = oldCube.right;
+            Left = oldCube.Back;
+            Right = oldCube.Front;
+            Up = oldCube.Up;
+            Down = oldCube.Down;
+            Front = oldCube.Left;
+            Back = oldCube.Right;
         }
 
         //Left,Back OR
@@ -130,12 +126,12 @@
             (desiredFace == Face.Right && targetFace == Face.Front) ||
             (desiredFace == Face.Front && targetFace == Face.Left))
         {
-            left = oldCube.front;
-            right = oldCube.back;
-            up = oldCube.up;
-            down = oldCube.down;
-            front = oldCube.right;
-            back = oldCube.left;
+            Left = oldCube.Front;
+            Right = oldCube.Back;
+            Up = oldCube.Up;
+            Down = oldCube.Down;
+            Front = oldCube.Right;
+            Back = oldCube.Left;
         }
 
         //Up,Front OR
@@ -149,12 +145,12 @@
             (desiredFace == Face.Down && targetFace == Face.Back) ||
             (desiredFace == Face.Back && targetFace == Face.Up))
         {
-            left = oldCube.left;
-            right = oldCube.right;
-            up = oldCube.back;
-            down = oldCube.front;
-            front = oldCube.up;
-            back = oldCube.down;
+            Left = oldCube.Left;
+            Right = oldCube.Right;
+            Up = oldCube.Back;
+            Down = oldCube.Front;
+            Front = oldCube.Up;
+            Back = oldCube.Down;
         }
 
         //Up,Back OR
@@ -169,12 +165,12 @@
             (desiredFace == Face.Down && targetFace == Face.Front) ||
             (desiredFace == Face.Front && targetFace == Face.Up))
         {
-            left = oldCube.left;
-            right = oldCube.right;
-            up = oldCube.front;
-            front = oldCube.back;
-            back = oldCube.down;
-            down = oldCube.up;
+            Left = oldCube.Left;
+            Right = oldCube.Right;
+            Up = oldCube.Front;
+            Front = oldCube.Back;
+            Back = oldCube.Down;
+            Down = oldCube.Up;
         }
 
         //Left,Right OR Right,Left -> 
@@ -185,23 +181,23 @@
             ((desiredFace == Face.Left && targetFace == Face.Right) ||
             (desiredFace == Face.Right && targetFace == Face.Left))
         {
-            left = oldCube.right;
-            right = oldCube.left;
+            Left = oldCube.Right;
+            Right = oldCube.Left;
 
             if (evenModules)
             {
-                up = oldCube.up;
-                front = oldCube.down;
-                back = oldCube.back;
-                down = oldCube.front;
+                Up = oldCube.Up;
+                Front = oldCube.Down;
+                Back = oldCube.Back;
+                Down = oldCube.Front;
             }
 
             else
             {
-                up = oldCube.down;
-                front = oldCube.up;
-                back = oldCube.front;
-                down = oldCube.back;
+                Up = oldCube.Down;
+                Front = oldCube.Up;
+                Back = oldCube.Front;
+                Down = oldCube.Back;
             }
         }
 
@@ -213,24 +209,24 @@
             ((desiredFace == Face.Left && targetFace == Face.Right) ||
             (desiredFace == Face.Right && targetFace == Face.Left))
         {
-            up = oldCube.down;
-            front = oldCube.up;
+            Up = oldCube.Down;
+            Front = oldCube.Up;
 
             if (evenModules)
             {
-                left = oldCube.right;
-                right = oldCube.left;
-                front = oldCube.up;
-                back = oldCube.front;
-                down = oldCube.back;
+                Left = oldCube.Right;
+                Right = oldCube.Left;
+                Front = oldCube.Up;
+                Back = oldCube.Front;
+                Down = oldCube.Back;
             }
 
             else
             {
-                left = oldCube.left;
-                right = oldCube.right;
-                back = oldCube.back;
-                down = oldCube.front;
+                Left = oldCube.Left;
+                Right = oldCube.Right;
+                Back = oldCube.Back;
+                Down = oldCube.Front;
             }
         }
 
@@ -242,25 +238,25 @@
             ((desiredFace == Face.Front && targetFace == Face.Back) ||
             (desiredFace == Face.Back && targetFace == Face.Front))
         {
-            back = oldCube.back;
-            down = oldCube.front;
+            Back = oldCube.Back;
+            Down = oldCube.Front;
 
             if (evenModules)
             {
-                left = oldCube.left;
-                right = oldCube.right;
-                up = oldCube.down;
-                front = oldCube.up;
-                back = oldCube.back;
-                down = oldCube.front;
+                Left = oldCube.Left;
+                Right = oldCube.Right;
+                Up = oldCube.Down;
+                Front = oldCube.Up;
+                Back = oldCube.Back;
+                Down = oldCube.Front;
             }
 
             else
             {
-                left = oldCube.right;
-                right = oldCube.left;
-                up = oldCube.up;
-                front = oldCube.down;
+                Left = oldCube.Right;
+                Right = oldCube.Left;
+                Up = oldCube.Up;
+                Front = oldCube.Down;
             }
         }
 
@@ -274,12 +270,12 @@
     {
         return new LocalCube
         {
-            left = this.left,
-            right = this.right,
-            up = this.up,
-            down = this.down,
-            front = this.front,
-            back = this.back
+            Left = this.Left,
+            Right = this.Right,
+            Up = this.Up,
+            Down = this.Down,
+            Front = this.Front,
+            Back = this.Back
         };
     }
 }
