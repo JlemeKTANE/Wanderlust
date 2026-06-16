@@ -22,7 +22,6 @@ public class Wanderlust : MonoBehaviour
 	private string SerialNumber;
 	private int BatteryNum;
 	private int PortNum;
-	private int ModuleNum;
 
 	private int ModuleId;
 
@@ -37,6 +36,14 @@ public class Wanderlust : MonoBehaviour
     {"GD", "GF", "LR", "LU"},
 };
 	private LocalCube cube;
+
+	private int[] SerialNumberToNum;
+    private int bellRingCount;
+
+	private int currentMazeIndex;
+    private int startingMazeRow;
+    private int startingMazeCol;
+	private List<Key> keys;
 
     /// <summary>
     /// Converts c# modulo from (-modulo, modulo) to [0, modulo)
@@ -56,7 +63,7 @@ public class Wanderlust : MonoBehaviour
 
 	void Awake()
 	{
-		ButtonL.OnInteract += delegate () { buttonpressed(); return false; };
+        ButtonL.OnInteract += delegate () { buttonpressed(); return false; };
 		ButtonR.OnInteract += delegate () { buttonpressed(); return false; };
 		ButtonU.OnInteract += delegate () { buttonpressed(); return false; };
 		ButtonD.OnInteract += delegate () { buttonpressed(); return false; };
@@ -67,8 +74,10 @@ public class Wanderlust : MonoBehaviour
     }
 	void Start()
 	{
-		int statusPositionIndex = Rnd.Range(0, 4);
-		statusPositionIndex = 3;
+        keys = new List<Key>();
+        bellRingCount = 0;
+        int statusPositionIndex = Rnd.Range(0, 4);
+		statusPositionIndex = 0;
 		string statusLightPosition = "";
 		string[] statusLightPair = null;
         switch (statusPositionIndex)
@@ -95,9 +104,8 @@ public class Wanderlust : MonoBehaviour
 		cube = new LocalCube();
 		BatteryNum = Bomb.GetBatteryCount();
 		PortNum = Bomb.GetPortCount();
-		ModuleNum = Bomb.GetSolvableModuleIDs().Count();
 		SerialNumber = Bomb.GetSerialNumber().ToUpper();
-		int[] SerialNumberToNum = SerialNumber.Select(x => char.IsDigit(x) ? int.Parse(""+x):x-'A'+1 ).ToArray();
+        SerialNumberToNum = SerialNumber.Select(x => char.IsDigit(x) ? int.Parse(""+x):x-'A'+1 ).ToArray();
 		List<string> indexCalculationLogs = new List<string>();
 
 		for (int i = 0; i < SerialNumberToNum.Length; i++)
@@ -137,7 +145,29 @@ public class Wanderlust : MonoBehaviour
             cube.Rotate(pair[0], pair[1], true);
             Log("Current Cube Rotation\n" + cube);
         }
+
+		startingMazeRow = (int)cube.Left % 6;
+		startingMazeCol = Bomb.GetSolvableModuleNames().Count % 6;
+		currentMazeIndex = GetMazeIndex();
+
+
+        Log("Starting in maze " + currentMazeIndex + " at " + GetBattshipCoorinate(startingMazeRow, startingMazeCol));
+		Key key = new Key(Bomb.GetSolvableModuleNames().Count % 13, (int)cube.Front, currentMazeIndex % 6);
+		Log("First key is in maze " + key.MazeNum + " at " + GetBattshipCoorinate(key.Row, key.Col));
+        keys.Add(key);
     }
+
+	private int GetMazeIndex()
+	{
+		return Modulo(SerialNumberToNum.Sum() + (bellRingCount * (SerialNumberToNum.Last() + 1)), 13);
+    }
+
+
+	private string GetBattshipCoorinate(int row, int col)
+	{
+		return "" + (char)('A' + col) + (row + 1);
+    }
+
     private void Log(object s)
     {
         Debug.LogFormat("[Wanderlust #{0}] {1}", ModuleId, s);
