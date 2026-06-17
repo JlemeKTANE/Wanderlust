@@ -40,6 +40,7 @@ public class Wanderlust : MonoBehaviour
 	private int[] SerialNumberToNum;
     private int bellRingCount;
 
+	private Maze[] mazes = new Maze[13];
 	private int currentMazeIndex;
     private int startingMazeRow;
     private int startingMazeCol;
@@ -74,6 +75,10 @@ public class Wanderlust : MonoBehaviour
     }
 	void Start()
 	{
+		for (int i = 0; i < 13; i++)
+		{
+			mazes[i] = new Maze(i);
+		}
         keys = new List<Key>();
         bellRingCount = 0;
         int statusPositionIndex = Rnd.Range(0, 4);
@@ -149,9 +154,8 @@ public class Wanderlust : MonoBehaviour
 		startingMazeRow = (int)cube.Left % 6;
 		startingMazeCol = Bomb.GetSolvableModuleNames().Count % 6;
 		currentMazeIndex = GetMazeIndex();
-
-
         Log("Starting in maze " + currentMazeIndex + " at " + GetBattshipCoorinate(startingMazeRow, startingMazeCol));
+		Log(mazes[currentMazeIndex]);
 		Key key = new Key(Bomb.GetSolvableModuleNames().Count % 13, (int)cube.Front, currentMazeIndex % 6);
 		Log("First key is in maze " + key.MazeNum + " at " + GetBattshipCoorinate(key.Row, key.Col));
         keys.Add(key);
