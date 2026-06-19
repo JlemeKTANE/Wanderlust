@@ -49,14 +49,22 @@ public class Wanderlust : MonoBehaviour
 	private int currentPlayerCol;
 	private List<Key> keys;
 
-	/// <summary>
-	/// Converts c# modulo from (-modulo, modulo) to [0, modulo)
-	/// </summary>
-	/// <param name="value">what is being moduloed</param>
-	/// <param name="modulo">the value that value is being moduloed</param>
-	/// <returns></returns>
-	/// thank u hawker
-	private int Modulo(int value, int modulo)
+    private enum Direction
+    {
+        Up,
+        Down,
+        Left,
+        Right
+    }
+
+    /// <summary>
+    /// Converts c# modulo from (-modulo, modulo) to [0, modulo)
+    /// </summary>
+    /// <param name="value">what is being moduloed</param>
+    /// <param name="modulo">the value that value is being moduloed</param>
+    /// <returns></returns>
+    /// thank u hawker
+    private int Modulo(int value, int modulo)
 	{
 		return ((value % modulo) + modulo) % modulo;
 	}
@@ -67,10 +75,10 @@ public class Wanderlust : MonoBehaviour
 
 	void Awake()
 	{
-		ButtonL.OnInteract += delegate () { LeftButtonPressed(); return false; };
-		ButtonR.OnInteract += delegate () { RightButtonPressed(); return false; };
-		ButtonU.OnInteract += delegate () { UpButtonPressed(); return false; };
-		ButtonD.OnInteract += delegate () { DownButtonPressed(); return false; };
+		ButtonL.OnInteract += delegate () { Move("left", cube.Left); return false; };
+		ButtonR.OnInteract += delegate () { Move("right", cube.Right); return false; };
+		ButtonU.OnInteract += delegate () { Move("up", cube.Up); return false; };
+		ButtonD.OnInteract += delegate () { Move("down", cube.Down); return false; };
 		ButtonF.OnInteract += delegate () { buttonpressed(); return false; };
 		ButtonB.OnInteract += delegate () { buttonpressed(); return false; };
 
@@ -167,80 +175,55 @@ public class Wanderlust : MonoBehaviour
 		keys.Add(key);
 	}
 
-	private void LeftButtonPressed()
-	{
-		Debug.Log("Left Button Pressed");
-
-		Cell[,] maze = mazes[currentMazeIndex].grid;
-
-
-		if (maze[currentPlayerRow, currentPlayerCol].LeftWall)
-		{
-			Strike("Hit a wall");
-		}
-		else
-		{
-			currentPlayerCol -= 1;
-		}
-
-		Debug.Log("Player is now at " + GetBattshipCoorinate(currentPlayerRow, currentPlayerCol));
-	}
-
-    private void RightButtonPressed()
-    {
-        Debug.Log("Right Button Pressed");
-
+	private void Move(string localFace, LocalCube.Face globalFace)
+	{ 
+		Log("Local " + localFace + " pressed which equates to global " + globalFace);
         Cell[,] maze = mazes[currentMazeIndex].grid;
+        Cell cell = maze[currentPlayerRow, currentPlayerCol];
 
+        bool hasWall = false;
 
-        if (maze[currentPlayerRow, currentPlayerCol].RightWall)
+        switch (globalFace)
+        {
+            case LocalCube.Face.Left:
+                hasWall = cell.LeftWall;
+                break;
+            case LocalCube.Face.Right:
+                hasWall = cell.RightWall;
+                break;
+            case LocalCube.Face.Up:
+                hasWall = cell.UpWall;
+                break;
+            case LocalCube.Face.Down:
+                hasWall = cell.DownWall;
+                break;
+        }
+
+        if (hasWall)
         {
             Strike("Hit a wall");
         }
+
         else
         {
-            currentPlayerCol += 1;
+            switch (globalFace)
+            {
+                case LocalCube.Face.Left:
+                    currentPlayerCol--;
+                    break;
+                case LocalCube.Face.Right:
+                    currentPlayerCol++;
+                    break;
+                case LocalCube.Face.Up:
+                    currentPlayerRow--;
+                    break;
+                case LocalCube.Face.Down:
+                    currentPlayerRow++;
+                    break;
+            }
+
+			Log("Player is now at " + GetBattshipCoorinate(currentPlayerRow, currentPlayerCol));
         }
-
-        Debug.Log("Player is now at " + GetBattshipCoorinate(currentPlayerRow, currentPlayerCol));
-    }
-
-    private void DownButtonPressed()
-    {
-        Debug.Log("Down Button Pressed");
-
-        Cell[,] maze = mazes[currentMazeIndex].grid;
-
-
-        if (maze[currentPlayerRow, currentPlayerCol].DownWall)
-        {
-            Strike("Hit a wall");
-        }
-        else
-        {
-            currentPlayerRow += 1;
-        }
-
-        Debug.Log("Player is now at " + GetBattshipCoorinate(currentPlayerRow, currentPlayerCol));
-    }
-
-    private void UpButtonPressed()
-    {
-        Debug.Log("Up Button Pressed");
-
-        Cell[,] maze = mazes[currentMazeIndex].grid;
-
-
-        if (maze[currentPlayerRow, currentPlayerCol].UpWall)
-        {
-            Strike("Hit a wall");
-        }
-        else
-        {
-            currentPlayerRow -= 1;
-        }
-
-        Debug.Log("Player is now at " + GetBattshipCoorinate(currentPlayerRow, currentPlayerCol));
     }
 
     private int GetMazeIndex()
