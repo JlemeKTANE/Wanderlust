@@ -80,7 +80,7 @@ public class Wanderlust : MonoBehaviour
 		ButtonU.OnInteract += delegate () { Move("up", cube.Up); return false; };
 		ButtonD.OnInteract += delegate () { Move("down", cube.Down); return false; };
 		ButtonF.OnInteract += delegate () { buttonpressed(); return false; };
-		ButtonB.OnInteract += delegate () { buttonpressed(); return false; };
+		ButtonB.OnInteract += delegate () { Move("back", cube.Back); return false; };
 
 		ModuleId = ModuleIdCounter++;
 	}
@@ -177,58 +177,99 @@ public class Wanderlust : MonoBehaviour
 
 	private void Move(string localFace, LocalCube.Face globalFace)
 	{ 
-		Log("Local " + localFace + " pressed which equates to global " + globalFace);
-        Cell[,] maze = mazes[currentMazeIndex].grid;
-        Cell cell = maze[currentPlayerRow, currentPlayerCol];
+		Log("Local " + localFace + " pressed which equates to global " + globalFace.ToString().ToLower());
 
-        bool hasWall = false;
-
-        switch (globalFace)
-        {
-            case LocalCube.Face.Left:
-                hasWall = cell.LeftWall;
-                break;
-            case LocalCube.Face.Right:
-                hasWall = cell.RightWall;
-                break;
-            case LocalCube.Face.Up:
-                hasWall = cell.UpWall;
-                break;
-            case LocalCube.Face.Down:
-                hasWall = cell.DownWall;
-                break;
+		if (globalFace == LocalCube.Face.Back)
+		{
+            if (GetCurrnetCell().Bell)
+            {
+                bellRingCount++;
+                Log("Rang the bell. This is the " + Ordinal(bellRingCount) + " time");
+                currentMazeIndex = GetMazeIndex();
+                Log("Now in maze " + currentMazeIndex);
+            }
+            else
+            {
+                Strike("Global back pressed when not on a bell");
+            }
         }
 
-        if (hasWall)
-        {
-            Strike("Hit a wall");
-        }
+		else
+		{
+            Cell[,] maze = mazes[currentMazeIndex].grid;
+            Cell cell = maze[currentPlayerRow, currentPlayerCol];
 
-        else
-        {
+            bool hasWall = false;
+
             switch (globalFace)
             {
                 case LocalCube.Face.Left:
-                    currentPlayerCol--;
+                    hasWall = cell.LeftWall;
                     break;
                 case LocalCube.Face.Right:
-                    currentPlayerCol++;
+                    hasWall = cell.RightWall;
                     break;
                 case LocalCube.Face.Up:
-                    currentPlayerRow--;
+                    hasWall = cell.UpWall;
                     break;
                 case LocalCube.Face.Down:
-                    currentPlayerRow++;
+                    hasWall = cell.DownWall;
                     break;
             }
 
-			Log("Player is now at " + GetBattshipCoorinate(currentPlayerRow, currentPlayerCol));
+            if (hasWall)
+            {
+                Strike("Hit a wall.");
+            }
+
+            else
+            {
+                switch (globalFace)
+                {
+                    case LocalCube.Face.Left:
+                        currentPlayerCol--;
+                        break;
+                    case LocalCube.Face.Right:
+                        currentPlayerCol++;
+                        break;
+                    case LocalCube.Face.Up:
+                        currentPlayerRow--;
+                        break;
+                    case LocalCube.Face.Down:
+                        currentPlayerRow++;
+                        break;
+                }
+
+                Log("Now at " + GetBattshipCoorinate(currentPlayerRow, currentPlayerCol));
+            }
         }
+    }
+
+	private void BackButtonPress()
+	{
+
+        
     }
 
     private int GetMazeIndex()
 	{
 		return Modulo(SerialNumberToNum.Sum() + (bellRingCount * (SerialNumberToNum.Last() + 1)), 13);
+	}
+
+	private string Ordinal(int num)
+	{ 
+		switch (num)
+		{
+			case 1:
+				return num + "st";
+			case 2:
+				return num + "nd";
+            case 3:
+                return num + "rd";
+			default:
+				return num + "th";
+
+        }
 	}
 
 
@@ -240,11 +281,16 @@ public class Wanderlust : MonoBehaviour
 	private void Strike(string s)
 	{
         GetComponent<KMBombModule>().HandleStrike();
-		Log(s);
+		Log("Strike! " + s);
 	}
 
     private void Log(object s)
     {
         Debug.LogFormat("[Wanderlust #{0}] {1}", ModuleId, s);
     }
+
+	private Cell GetCurrnetCell()
+	{
+		return mazes[currentMazeIndex].grid[currentPlayerRow, currentPlayerCol];
+	}
 }
