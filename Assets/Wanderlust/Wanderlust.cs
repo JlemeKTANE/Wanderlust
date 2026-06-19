@@ -25,92 +25,95 @@ public class Wanderlust : MonoBehaviour
 
 	private int ModuleId;
 
-    private static int ModuleIdCounter = 1;
+	private static int ModuleIdCounter = 1;
 
-    private List<string[]> pairs = new List<string[]>();
+	private List<string[]> pairs = new List<string[]>();
 
-    private string[,] edgeworkGrid = new string[3, 4]
+	private string[,] edgeworkGrid = new string[3, 4]
 {
-    {"LL", "GB", "GU", "LF"},
-    {"GR", "LD", "LB", "GL"},
-    {"GD", "GF", "LR", "LU"},
+	{"LL", "GB", "GU", "LF"},
+	{"GR", "LD", "LB", "GL"},
+	{"GD", "GF", "LR", "LU"},
 };
 	private LocalCube cube;
 
 	private int[] SerialNumberToNum;
-    private int bellRingCount;
+	private int bellRingCount;
 
-	private Maze[] mazes = new Maze[13];
+	private static Maze[] mazes = new Maze[13];
+	private int startingMazeIndex;
 	private int currentMazeIndex;
-    private int startingMazeRow;
-    private int startingMazeCol;
+	private int startingPlayerRow;
+	private int startingPlayerCol;
+	private int currentPlayerRow;
+	private int currentPlayerCol;
 	private List<Key> keys;
 
-    /// <summary>
-    /// Converts c# modulo from (-modulo, modulo) to [0, modulo)
-    /// </summary>
-    /// <param name="value">what is being moduloed</param>
-    /// <param name="modulo">the value that value is being moduloed</param>
-    /// <returns></returns>
+	/// <summary>
+	/// Converts c# modulo from (-modulo, modulo) to [0, modulo)
+	/// </summary>
+	/// <param name="value">what is being moduloed</param>
+	/// <param name="modulo">the value that value is being moduloed</param>
+	/// <returns></returns>
 	/// thank u hawker
-    private int Modulo(int value, int modulo)
-    {
-        return ((value % modulo) + modulo) % modulo;
-    }
-    void buttonpressed()
+	private int Modulo(int value, int modulo)
+	{
+		return ((value % modulo) + modulo) % modulo;
+	}
+	void buttonpressed()
 	{
 		Debug.Log("Button Pressed");
 	}
 
 	void Awake()
 	{
-        ButtonL.OnInteract += delegate () { buttonpressed(); return false; };
-		ButtonR.OnInteract += delegate () { buttonpressed(); return false; };
-		ButtonU.OnInteract += delegate () { buttonpressed(); return false; };
-		ButtonD.OnInteract += delegate () { buttonpressed(); return false; };
+		ButtonL.OnInteract += delegate () { LeftButtonPressed(); return false; };
+		ButtonR.OnInteract += delegate () { RightButtonPressed(); return false; };
+		ButtonU.OnInteract += delegate () { UpButtonPressed(); return false; };
+		ButtonD.OnInteract += delegate () { DownButtonPressed(); return false; };
 		ButtonF.OnInteract += delegate () { buttonpressed(); return false; };
 		ButtonB.OnInteract += delegate () { buttonpressed(); return false; };
 
-        ModuleId = ModuleIdCounter++;
-    }
+		ModuleId = ModuleIdCounter++;
+	}
 	void Start()
 	{
 		for (int i = 0; i < 13; i++)
 		{
 			mazes[i] = new Maze(i);
 		}
-        keys = new List<Key>();
-        bellRingCount = 0;
-        int statusPositionIndex = Rnd.Range(0, 4);
+		keys = new List<Key>();
+		bellRingCount = 0;
+		int statusPositionIndex = Rnd.Range(0, 4);
 		statusPositionIndex = 0;
 		string statusLightPosition = "";
 		string[] statusLightPair = null;
-        switch (statusPositionIndex)
+		switch (statusPositionIndex)
 		{
 			case 0:
 				statuslight.transform.localPosition = TopLeftPosition;
-                statusLightPair = new string[] {"LU","LL"};
+				statusLightPair = new string[] { "LU", "LL" };
 				statusLightPosition = "top left";
-                break;
-            case 1:
-                statuslight.transform.localPosition = BottomRightPosition;
-                statusLightPair = new string[] { "LU", "LR" };
-                statusLightPosition = "bottom right";
-                break;
-            case 2:
-                statuslight.transform.localPosition = BottomLeftPosition;
-                statusLightPair = new string[] { "LU", "LD" };
-                statusLightPosition = "bottom left";
-                break;
+				break;
+			case 1:
+				statuslight.transform.localPosition = BottomRightPosition;
+				statusLightPair = new string[] { "LU", "LR" };
+				statusLightPosition = "bottom right";
+				break;
+			case 2:
+				statuslight.transform.localPosition = BottomLeftPosition;
+				statusLightPair = new string[] { "LU", "LD" };
+				statusLightPosition = "bottom left";
+				break;
 			case 3:
-                statusLightPosition = "top right";
-                break;
-        }
+				statusLightPosition = "top right";
+				break;
+		}
 		cube = new LocalCube();
 		BatteryNum = Bomb.GetBatteryCount();
 		PortNum = Bomb.GetPortCount();
 		SerialNumber = Bomb.GetSerialNumber().ToUpper();
-        SerialNumberToNum = SerialNumber.Select(x => char.IsDigit(x) ? int.Parse(""+x):x-'A'+1 ).ToArray();
+		SerialNumberToNum = SerialNumber.Select(x => char.IsDigit(x) ? int.Parse("" + x) : x - 'A' + 1).ToArray();
 		List<string> indexCalculationLogs = new List<string>();
 
 		for (int i = 0; i < SerialNumberToNum.Length; i++)
@@ -121,23 +124,23 @@ public class Wanderlust : MonoBehaviour
 			{
 				pairs.Add(new string[2]);
 			}
-            pairs[i / 2][i % 2] = edgeworkGrid[Row, Column];
+			pairs[i / 2][i % 2] = edgeworkGrid[Row, Column];
 
 			//store for logging purposes
 			indexCalculationLogs.Add(edgeworkGrid[Row, Column] + " | Row: (" + SerialNumberToNum[i] + " + " + BatteryNum + ") % 4 = " + Column + " | Col: (" + SerialNumberToNum[i] + " - " + PortNum + ") % 3 = " + Row);
-        }
-        for (int i = 0; i < pairs.Count; i++)
+		}
+		for (int i = 0; i < pairs.Count; i++)
 		{
 			Log("Pair " + (i + 1) + ": " + pairs[i][0] + "," + pairs[i][1]);
 
-        }
+		}
 		Log("Intital Rotations");
 		Log("Status Light is in the " + statusLightPosition + " corner.");
-		if (statusLightPair != null) 
+		if (statusLightPair != null)
 		{
-            Log("Letter Pair 1:" + statusLightPair[0] + ", " + statusLightPair[1]);
-            cube.Rotate(statusLightPair[0], statusLightPair[1], true);
-            Log("Current Cube Rotation\n" + cube);
+			Log("Letter Pair 1:" + statusLightPair[0] + ", " + statusLightPair[1]);
+			cube.Rotate(statusLightPair[0], statusLightPair[1], true);
+			Log("Current Cube Rotation\n" + cube);
 		}
 
 		for (int i = 0; i < pairs.Count; i++)
@@ -145,32 +148,117 @@ public class Wanderlust : MonoBehaviour
 			string[] pair = pairs[i];
 			Log("Letter Pair " + (i + 1 + (statusLightPair != null ? 1 : 0)) + ": " + pair[0] + ", " + pair[1]);
 			Log(indexCalculationLogs[i * 2]);
-            Log(indexCalculationLogs[(i * 2) + 1]);
+			Log(indexCalculationLogs[(i * 2) + 1]);
 
-            cube.Rotate(pair[0], pair[1], true);
-            Log("Current Cube Rotation\n" + cube);
-        }
+			cube.Rotate(pair[0], pair[1], true);
+			Log("Current Cube Rotation\n" + cube);
+		}
 
-		startingMazeRow = (int)cube.Left % 6;
-		startingMazeCol = Bomb.GetSolvableModuleNames().Count % 6;
-		currentMazeIndex = GetMazeIndex();
-        Log("Starting in maze " + currentMazeIndex + " at " + GetBattshipCoorinate(startingMazeRow, startingMazeCol));
+		startingPlayerRow = (int)cube.Left % 6;
+		startingPlayerCol = Bomb.GetSolvableModuleNames().Count % 6;
+		currentPlayerCol = startingPlayerCol;
+		currentPlayerRow = startingPlayerRow;
+		startingMazeIndex = GetMazeIndex();
+		currentMazeIndex = startingMazeIndex;
+		Log("Starting in maze " + currentMazeIndex + " at " + GetBattshipCoorinate(startingPlayerRow, startingPlayerCol));
 		Log(mazes[currentMazeIndex]);
 		Key key = new Key(Bomb.GetSolvableModuleNames().Count % 13, (int)cube.Front, currentMazeIndex % 6);
 		Log("First key is in maze " + key.MazeNum + " at " + GetBattshipCoorinate(key.Row, key.Col));
-        keys.Add(key);
+		keys.Add(key);
+	}
+
+	private void LeftButtonPressed()
+	{
+		Debug.Log("Left Button Pressed");
+
+		Cell[,] maze = mazes[currentMazeIndex].grid;
+
+
+		if (maze[currentPlayerRow, currentPlayerCol].LeftWall)
+		{
+			Strike("Hit a wall");
+		}
+		else
+		{
+			currentPlayerCol -= 1;
+		}
+
+		Debug.Log("Player is now at " + GetBattshipCoorinate(currentPlayerRow, currentPlayerCol));
+	}
+
+    private void RightButtonPressed()
+    {
+        Debug.Log("Right Button Pressed");
+
+        Cell[,] maze = mazes[currentMazeIndex].grid;
+
+
+        if (maze[currentPlayerRow, currentPlayerCol].RightWall)
+        {
+            Strike("Hit a wall");
+        }
+        else
+        {
+            currentPlayerCol += 1;
+        }
+
+        Debug.Log("Player is now at " + GetBattshipCoorinate(currentPlayerRow, currentPlayerCol));
     }
 
-	private int GetMazeIndex()
+    private void DownButtonPressed()
+    {
+        Debug.Log("Down Button Pressed");
+
+        Cell[,] maze = mazes[currentMazeIndex].grid;
+
+
+        if (maze[currentPlayerRow, currentPlayerCol].DownWall)
+        {
+            Strike("Hit a wall");
+        }
+        else
+        {
+            currentPlayerRow += 1;
+        }
+
+        Debug.Log("Player is now at " + GetBattshipCoorinate(currentPlayerRow, currentPlayerCol));
+    }
+
+    private void UpButtonPressed()
+    {
+        Debug.Log("Up Button Pressed");
+
+        Cell[,] maze = mazes[currentMazeIndex].grid;
+
+
+        if (maze[currentPlayerRow, currentPlayerCol].UpWall)
+        {
+            Strike("Hit a wall");
+        }
+        else
+        {
+            currentPlayerRow -= 1;
+        }
+
+        Debug.Log("Player is now at " + GetBattshipCoorinate(currentPlayerRow, currentPlayerCol));
+    }
+
+    private int GetMazeIndex()
 	{
 		return Modulo(SerialNumberToNum.Sum() + (bellRingCount * (SerialNumberToNum.Last() + 1)), 13);
-    }
+	}
 
 
 	private string GetBattshipCoorinate(int row, int col)
 	{
 		return "" + (char)('A' + col) + (row + 1);
-    }
+	}
+
+	private void Strike(string s)
+	{
+        GetComponent<KMBombModule>().HandleStrike();
+		Log(s);
+	}
 
     private void Log(object s)
     {

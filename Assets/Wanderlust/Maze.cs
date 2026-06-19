@@ -201,7 +201,6 @@ public class Maze {
     public override string ToString()
     {
         var sb = new System.Text.StringBuilder();
-
         sb.AppendLine();
 
         for (int row = 0; row < 6; row++)
@@ -219,7 +218,6 @@ public class Maze {
                 if (col < 5)
                     sb.Append("  ");
             }
-
             sb.AppendLine();
         }
 
