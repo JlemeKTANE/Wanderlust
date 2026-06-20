@@ -1,0 +1,1 @@
+﻿public enum Face { Left, Right, Up, Down, Front, Back }
