@@ -3,7 +3,6 @@ using UnityEngine;
 
 public class LocalCube
 {
-    public enum Face { Left, Right, Up, Down, Front, Back }
     //vairable is the local face, the value is the global face
     public Face Left { get; private set; }
     public Face Right { get; private set; }
@@ -300,7 +299,7 @@ public class LocalCube
         }
     }
 
-    private Face GetLocalFaceOfGlobalFace(Face globalFace)
+    public Face GetLocalFaceOfGlobalFace(Face globalFace)
     {
         if (Left == globalFace) return Face.Left;
         if (Right == globalFace) return Face.Right;

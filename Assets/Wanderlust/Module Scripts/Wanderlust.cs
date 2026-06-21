@@ -75,12 +75,12 @@ public class Wanderlust : MonoBehaviour
 
 	void Awake()
 	{
-		ButtonL.OnInteract += delegate () { Move("left", cube.Left); return false; };
-		ButtonR.OnInteract += delegate () { Move("right", cube.Right); return false; };
-		ButtonU.OnInteract += delegate () { Move("up", cube.Up); return false; };
-		ButtonD.OnInteract += delegate () { Move("down", cube.Down); return false; };
-		ButtonF.OnInteract += delegate () { buttonpressed(); return false; };
-		ButtonB.OnInteract += delegate () { Move("back", cube.Back); return false; };
+		ButtonL.OnInteract += delegate () { Move(Face.Left, cube.Left); return false; };
+		ButtonR.OnInteract += delegate () { Move(Face.Right, cube.Right); return false; };
+		ButtonU.OnInteract += delegate () { Move(Face.Up, cube.Up); return false; };
+		ButtonD.OnInteract += delegate () { Move(Face.Down, cube.Down); return false; };
+		ButtonF.OnInteract += delegate () { Move(Face.Front, cube.Front); return false; };
+		ButtonB.OnInteract += delegate () { Move(Face.Back, cube.Back); return false; };
 
 		ModuleId = ModuleIdCounter++;
 	}
@@ -175,82 +175,111 @@ public class Wanderlust : MonoBehaviour
 		keys.Add(key);
 	}
 
-	private void Move(string localFace, LocalCube.Face globalFace)
-	{ 
-		Log("Local " + localFace + " pressed which equates to global " + globalFace.ToString().ToLower());
+	private void Move(Face localFace, Face globalFace)
+	{
+		Log("Local " + localFace.ToString().ToLower() + " pressed which equates to global " + globalFace.ToString().ToLower());
 
-		if (globalFace == LocalCube.Face.Back)
+		Cell currentCell = GetCurrnetCell();
+
+        if (globalFace == Face.Back)
 		{
-            if (GetCurrnetCell().Bell)
+			if (currentCell.Bell)
+			{
+				bellRingCount++;
+				Log("Rang the bell. This is the " + Ordinal(bellRingCount) + " time");
+				currentMazeIndex = GetMazeIndex();
+				Log("Now in maze " + currentMazeIndex);
+			}
+			else
+			{
+				Strike("Global back pressed when not on a bell");
+			}
+		}
+
+		else if (globalFace == Face.Front)
+		{
+
+			Key desiredKey = keys.Last();
+			
+            if (currentCell.Row == desiredKey.Row &&
+				currentCell.Column == desiredKey.Col &&
+				desiredKey.MazeNum == currentMazeIndex)
             {
-                bellRingCount++;
-                Log("Rang the bell. This is the " + Ordinal(bellRingCount) + " time");
-                currentMazeIndex = GetMazeIndex();
-                Log("Now in maze " + currentMazeIndex);
+				int index = keys.IndexOf(desiredKey);
+
+
+
+				Log("Collected the " + Ordinal(index) + " key");
+
+
+				//if (new Face[] { Face.Left, Face.Right, Face.Up }.Contains(localFace))
+				//{
+				//
+				//}
+				//
+				//else
+				//{ 
+				//	
+				//}
+
+
             }
             else
             {
-                Strike("Global back pressed when not on a bell");
+                Strike("Global front pressed when not on the key.");
             }
         }
 
 		else
 		{
-            Cell[,] maze = mazes[currentMazeIndex].grid;
-            Cell cell = maze[currentPlayerRow, currentPlayerCol];
+			Cell[,] maze = mazes[currentMazeIndex].grid;
+			Cell cell = maze[currentPlayerRow, currentPlayerCol];
 
-            bool hasWall = false;
+			bool hasWall = false;
 
-            switch (globalFace)
-            {
-                case LocalCube.Face.Left:
-                    hasWall = cell.LeftWall;
-                    break;
-                case LocalCube.Face.Right:
-                    hasWall = cell.RightWall;
-                    break;
-                case LocalCube.Face.Up:
-                    hasWall = cell.UpWall;
-                    break;
-                case LocalCube.Face.Down:
-                    hasWall = cell.DownWall;
-                    break;
-            }
+			switch (globalFace)
+			{
+				case Face.Left:
+					hasWall = cell.LeftWall;
+					break;
+				case Face.Right:
+					hasWall = cell.RightWall;
+					break;
+				case Face.Up:
+					hasWall = cell.UpWall;
+					break;
+				case Face.Down:
+					hasWall = cell.DownWall;
+					break;
+			}
 
-            if (hasWall)
-            {
-                Strike("Hit a wall.");
-            }
+			if (hasWall)
+			{
+				Strike("Hit a wall.");
+			}
 
-            else
-            {
-                switch (globalFace)
-                {
-                    case LocalCube.Face.Left:
-                        currentPlayerCol--;
-                        break;
-                    case LocalCube.Face.Right:
-                        currentPlayerCol++;
-                        break;
-                    case LocalCube.Face.Up:
-                        currentPlayerRow--;
-                        break;
-                    case LocalCube.Face.Down:
-                        currentPlayerRow++;
-                        break;
-                }
+			else
+			{
+				switch (globalFace)
+				{
+					case Face.Left:
+						currentPlayerCol--;
+						break;
+					case Face.Right:
+						currentPlayerCol++;
+						break;
+					case Face.Up:
+						currentPlayerRow--;
+						break;
+					case Face.Down:
+						currentPlayerRow++;
+						break;
+				}
 
-                Log("Now at " + GetBattshipCoorinate(currentPlayerRow, currentPlayerCol));
-            }
-        }
+				Log("Now at " + GetBattshipCoorinate(currentPlayerRow, currentPlayerCol));
+			}
+		}
     }
-
-	private void BackButtonPress()
-	{
-
-        
-    }
-
     private int GetMazeIndex()
 	{
 		return Modulo(SerialNumberToNum.Sum() + (bellRingCount * (SerialNumberToNum.Last() + 1)), 13);
