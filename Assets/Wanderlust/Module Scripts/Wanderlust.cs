@@ -4,7 +4,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using UnityEditor.Hardware;
 using UnityEngine;
+using UnityEngine.Experimental.UIElements;
 using Rnd = UnityEngine.Random;
 public class Wanderlust : MonoBehaviour
 {
@@ -14,8 +16,8 @@ public class Wanderlust : MonoBehaviour
 	{ 
 		Key
 	}
-	public KMBombInfo Bomb;
-	public KMAudio Audio;
+	private KMBombInfo Bomb;
+	private KMAudio Audio;
 	public GameObject statuslight;
 	public Vector3 TopRightPosition;
 	public Vector3 TopLeftPosition;
@@ -44,7 +46,7 @@ public class Wanderlust : MonoBehaviour
 
 	private int[] SerialNumberToNum;
 	private int bellRingCount;
-
+	private int keyIndex;
 	public static Maze[] mazes = new Maze[13];
 	private int startingMazeIndex;
 	private int currentMazeIndex;
@@ -88,11 +90,15 @@ public class Wanderlust : MonoBehaviour
 		ButtonF.OnInteract += delegate () { Move(Face.Front, cube.Front); return false; };
 		ButtonB.OnInteract += delegate () { Move(Face.Back, cube.Back); return false; };
 
-		ModuleId = ModuleIdCounter++;
+		Bomb = GetComponent<KMBombInfo>();
+        Audio = GetComponent<KMAudio>();
+
+        ModuleId = ModuleIdCounter++;
 	}
 	void Start()
 	{
-		localInputs = new List<Face>();
+		keyIndex = -1;
+        localInputs = new List<Face>();
 		for (int i = 0; i < 13; i++)
 		{
 			mazes[i] = new Maze(i);
@@ -176,21 +182,48 @@ public class Wanderlust : MonoBehaviour
 		startingMazeIndex = GetMazeIndex(SerialNumberToNum, bellRingCount);
 		currentMazeIndex = startingMazeIndex;
 		Log("Starting in maze " + currentMazeIndex + " at " + GetBattshipCoorinate(startingPlayerRow, startingPlayerCol));
-		Log(mazes[currentMazeIndex]);
-		Key key = new Key(Bomb.GetSolvableModuleNames().Count % 13, (int)cube.Front, currentMazeIndex % 6);
-		Log("First key is in maze " + key.MazeNum + " at " + GetBattshipCoorinate(key.Row, key.Col));
-		keys.Add(key);
-
-        List<GameState> gameStatePath = FindPath(currentMazeIndex, key.MazeNum, bellRingCount, mazes[currentMazeIndex].grid[currentPlayerRow, currentPlayerCol], mazes[key.MazeNum].grid[key.Row, key.Col]);
-		List<Face>[] localPaths = ParseGameStateToLocalFace(gameStatePath, cube, Goal.Key);
-        LogPath("One path to the key:", ParseGameStatesToGlobalFaces(gameStatePath, Goal.Key), localPaths[0], localPaths[1]);
+		GenerateKeyLocation();
+		LogKey(0);
+		Key key = keys[0];
+		GetPathToGoal(currentMazeIndex, key.MazeNum, bellRingCount, mazes[currentMazeIndex].grid[currentPlayerRow, currentPlayerCol], mazes[key.MazeNum].grid[key.Row, key.Col], cube, Goal.Key, "One path to the key:");
     }
+
+	private void GetPathToGoal(int currentMazeIndex, int goalMazeIndex, int bellRingCount, Cell currentCell, Cell goalCell, LocalCube startingCube, Goal goal, string startingStr)
+	{
+        List<GameState> gameStatePath = FindPath(currentMazeIndex, goalMazeIndex, bellRingCount, currentCell, goalCell);
+        List<Face>[] localPaths = ParseGameStateToLocalFace(gameStatePath, startingCube, goal);
+        LogPath(startingStr, ParseGameStatesToGlobalFaces(gameStatePath, Goal.Key), localPaths[0], localPaths[1]);
+    }
+
+    private void GenerateKeyLocation()
+	{
+		keyIndex++;
+		int mazeNum, row, column;
+        switch (keyIndex)
+		{
+			case 0:
+				mazeNum = Bomb.GetSolvableModuleNames().Count % 13;
+				row = (int)cube.Front;
+				column = currentMazeIndex % 6;
+                break;
+			case 1:
+            case 2:
+				mazeNum = bellRingCount % 13;
+				row = (int)cube.GetLocalFaceOfGlobalFace(Face.Front);
+				column = (localInputs.Count() - (bellRingCount - keyIndex)) % 6;
+                break;
+
+			default:
+				throw new ArgumentException("Invalid key num");
+		}
+
+		keys.Add(new Key(mazeNum, row, column));
+	}
 
 	private void Move(Face localFace, Face globalFace)
 	{
 		string localFaceStr = localFace.ToString().ToLower();
         string globalFaceStr = globalFace.ToString().ToLower();
-
 
         Log("Local " + localFaceStr + " pressed which equates to global " + globalFaceStr);
 
@@ -231,33 +264,58 @@ public class Wanderlust : MonoBehaviour
 
 		else if (globalFace == Face.Front)
 		{
-
 			Key desiredKey = keys.Last();
 			
-            if (currentCell.Row == desiredKey.Row &&
+            if (keyIndex < 2 &&
+				currentCell.Row == desiredKey.Row &&
 				currentCell.Column == desiredKey.Col &&
 				desiredKey.MazeNum == currentMazeIndex)
             {
-				int index = keys.IndexOf(desiredKey) + 1;
 
+				Log("Collected the " + Ordinal(keyIndex + 1) + " key");
 
-
-				Log("Collected the " + Ordinal(index) + " key");
-
-
-				if (new Face[] { cube.Left, cube.Right, cube.Up }.Any(f => f == Face.Front))
+				if (keyIndex == 0)
 				{
-					Log("Global front is either Local left, right, or up. Swapping local up and local right");
-					cube.Swap("LU", "LR");
+					if (new Face[] { cube.Left, cube.Right, cube.Up }.Any(f => f == Face.Front))
+					{
+						Log("Global front is either Local left, right, or up. Swapping local up and local right");
+						cube.Swap("LU", "LR");
+					}
+					else
+					{
+						Log("Global front is not either Local left, right, or up. Swapping local up and local front");
+						cube.Swap("LU", "LF");
+
+					}
 				}
-				else
-				{
-                    Log("Global front is not either Local left, right, or up. Swapping local up and local front");
-                    cube.Swap("LU", "LF");
 
+				else if (keyIndex == 1)
+				{
+                    if (currentMazeIndex % 2 == 0)
+                    {
+                        Log("The key was in an even maze. Swapping local down with local up and local right with local left.");
+                        cube.Swap("LD", "LU");
+                        cube.Swap("LR", "LL");
+                    }
+                    else
+                    {
+                        Log("The key was in an odd maze. Swapping local front with local back and local back with local down.");
+                        cube.Swap("LF", "LB");
+                        cube.Swap("LB", "LD");
+                    }
                 }
 
-                Log("Current Cube Orientation\n" + cube);
+
+				Log("Current Cube Orientation\n" + cube);
+
+                //if not thhe last key, generate the next one.
+                if (keyIndex < 2)
+				{
+                    GenerateKeyLocation();
+					Key key = keys[keyIndex];
+                    LogKey(keyIndex);
+                    GetPathToGoal(currentMazeIndex, key.MazeNum, bellRingCount, mazes[currentMazeIndex].grid[currentPlayerRow, currentPlayerCol], mazes[key.MazeNum].grid[key.Row, key.Col], cube, Goal.Key, "One path to the key:");
+                }
             }
             else
             {
@@ -358,7 +416,6 @@ public class Wanderlust : MonoBehaviour
         }
 	}
 
-
 	private string GetBattshipCoorinate(int row, int col)
 	{
 		return "" + (char)('A' + col) + (row + 1);
@@ -375,12 +432,18 @@ public class Wanderlust : MonoBehaviour
         Debug.LogFormat("[Wanderlust #{0}] {1}", ModuleId, s);
     }
 
+	private void LogKey(int index)
+	{
+		Key key = keys[index];
+        Log(Ordinal(index + 1) + " key is in maze " + key.MazeNum + " at " + GetBattshipCoorinate(key.Row, key.Col));
+    }
+
 	private void LogPath(string startingStr, List<Face> globalPath, List<Face> localEvenPath, List<Face> localOddPath)
 	{
 		Log(startingStr);
-        Log("Global Path: " + Join(globalPath.Select(f => f.ToString())));
-        Log("Local Even Path: " + Join(localEvenPath.Select(f => f.ToString())));
-        Log("Local Odd Path: " + Join(localOddPath.Select(f => f.ToString())));
+        Log("Global path: " + Join(globalPath.Select(f => f.ToString())));
+        Log("Local path for even solved modules: " + Join(localEvenPath.Select(f => f.ToString())));
+        Log("Local path for odd solved modules: " + Join(localOddPath.Select(f => f.ToString())));
 	}
 
 	private string Join(IEnumerable<string> collection)
@@ -518,10 +581,8 @@ public class Wanderlust : MonoBehaviour
 		return new bool[] { true, false }.Select(b => ParseGameStateToLocalFace(path, b, startingCube, goal)).ToArray();
     }
 
-
     private List<Face> ParseGameStateToLocalFace(List<GameState> path, bool evenModules, LocalCube startingCube, Goal goal)
 	{
-
 		List<Face> globalFacePath =	ParseGameStatesToGlobalFaces(path, goal);
 
 		//split the global path when there is a back button (add the current cell just in case we need it for calculating bell pair rotations)
@@ -549,17 +610,21 @@ public class Wanderlust : MonoBehaviour
 
         foreach (List<Tuple<Face, Cell>> l in brokenFacePaths)
 		{
-			List<Face> faces = l.Select(t => t.Item1).ToList();
-            localFacePath.AddRange(faces.Select(globalFace => currentCube.GetLocalFaceOfGlobalFace(globalFace)));
-			
-			//calculate what the new cube orientation is
-			Cell lastCell = l.Last().Item2;
+			List<Face> globalFaces = l.Select(t => t.Item1).ToList();
+			List<Face> localFaces = globalFaces.Select(globalFace => currentCube.GetLocalFaceOfGlobalFace(globalFace)).ToList();
+            localFacePath.AddRange(localFaces);
+
+			//Debug.Log("Local Cube:\n" + currentCube);
+			//Debug.Log("Global Faces: " + Join(globalFaces.Select(f => f.ToString())));
+			//Debug.Log("Local Faces: " + Join(localFaces.Select(f => f.ToString())));
+
+            //calculate what the new cube orientation is
+            Cell lastCell = l.Last().Item2;
 			string[] pair = GetBellRotationPair(lastCell.Row, localFacePath);
+			Debug.Log("Bell pair is " + Join(pair));
 			currentCube.Rotate(pair[0], pair[1], evenModules);
 		}
 
 		return localFacePath;
     }
-
-
 }
