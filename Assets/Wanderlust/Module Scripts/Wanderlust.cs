@@ -40,7 +40,7 @@ public class Wanderlust : MonoBehaviour
 	private int[] SerialNumberToNum;
 	private int bellRingCount;
 
-	private static Maze[] mazes = new Maze[13];
+	public static Maze[] mazes = new Maze[13];
 	private int startingMazeIndex;
 	private int currentMazeIndex;
 	private int startingPlayerRow;
@@ -166,14 +166,22 @@ public class Wanderlust : MonoBehaviour
 		startingPlayerCol = Bomb.GetSolvableModuleNames().Count % 6;
 		currentPlayerCol = startingPlayerCol;
 		currentPlayerRow = startingPlayerRow;
-		startingMazeIndex = GetMazeIndex();
+		startingMazeIndex = GetMazeIndex(SerialNumberToNum, bellRingCount);
 		currentMazeIndex = startingMazeIndex;
 		Log("Starting in maze " + currentMazeIndex + " at " + GetBattshipCoorinate(startingPlayerRow, startingPlayerCol));
 		Log(mazes[currentMazeIndex]);
 		Key key = new Key(Bomb.GetSolvableModuleNames().Count % 13, (int)cube.Front, currentMazeIndex % 6);
 		Log("First key is in maze " + key.MazeNum + " at " + GetBattshipCoorinate(key.Row, key.Col));
 		keys.Add(key);
-	}
+
+	 	
+
+		
+
+        List<GameState> gameStatePath = FindPath(currentMazeIndex, key.MazeNum, bellRingCount, mazes[currentMazeIndex].grid[currentPlayerRow, currentPlayerCol], mazes[key.MazeNum].grid[key.Row, key.Col]);
+		LogPath("One path to the key:", ParseGameStatesToGlobalFaces(gameStatePath), ParseGameStateToLocalFace(gameStatePath));
+
+    }
 
 	private void Move(Face localFace, Face globalFace)
 	{
@@ -187,7 +195,7 @@ public class Wanderlust : MonoBehaviour
 			{
 				bellRingCount++;
 				Log("Rang the bell. This is the " + Ordinal(bellRingCount) + " time");
-				currentMazeIndex = GetMazeIndex();
+				currentMazeIndex = GetMazeIndex(SerialNumberToNum, bellRingCount);
 				Log("Now in maze " + currentMazeIndex);
 			}
 			else
@@ -205,7 +213,7 @@ public class Wanderlust : MonoBehaviour
 				currentCell.Column == desiredKey.Col &&
 				desiredKey.MazeNum == currentMazeIndex)
             {
-				int index = keys.IndexOf(desiredKey);
+				int index = keys.IndexOf(desiredKey) + 1;
 
 
 
@@ -280,9 +288,9 @@ public class Wanderlust : MonoBehaviour
 			}
 		}
     }
-    private int GetMazeIndex()
+    public static int GetMazeIndex(int[] serialNumberToNum, int bellRingCount)
 	{
-		return Modulo(SerialNumberToNum.Sum() + (bellRingCount * (SerialNumberToNum.Last() + 1)), 13);
+		return (serialNumberToNum.Sum() + (bellRingCount * (serialNumberToNum.Last() + 1))) % 13;
 	}
 
 	private string Ordinal(int num)
@@ -318,8 +326,141 @@ public class Wanderlust : MonoBehaviour
         Debug.LogFormat("[Wanderlust #{0}] {1}", ModuleId, s);
     }
 
+	private void LogPath(string startingStr, List<Face> globalPath, List<Face> localPath)
+	{
+		Log(startingStr);
+        Log("Global Path: " + Join(globalPath.Select(f => f.ToString())));
+        Log("Local Path: " + Join(localPath.Select(f => f.ToString())));
+	}
+
+	private string Join(IEnumerable<string> collection)
+	{
+		return collection.ToArray().Join(", ");
+	}
+
 	private Cell GetCurrnetCell()
 	{
 		return mazes[currentMazeIndex].grid[currentPlayerRow, currentPlayerCol];
 	}
+
+	//Find the shortest path from one cell to another
+	private List<GameState> FindPath(int currentMazeIndex, int goalMazeIndex, int bellRingCount, Cell currentCell, Cell goalCell)
+	{
+		//set the serial number
+		GameState.SerialNumberToNum = SerialNumberToNum;
+
+        GameState startingState = new GameState(currentMazeIndex, bellRingCount, currentCell, null);
+
+        List<GameState> vistedStates = new List<GameState>();
+        Queue<GameState> queue = new Queue<GameState>();
+
+        queue.Enqueue(startingState);
+
+        //continue while the goal has not been found
+        while (queue.Count > 0 && !vistedStates.Any(s => 
+		s.CurrentMazeIndex == goalMazeIndex && 
+		s.CurrentCell.Row == goalCell.Row && 
+		s.CurrentCell.Column == goalCell.Column))
+        {
+            GameState currentState = queue.Dequeue();
+
+            //get all the valid neighbors
+            List<GameState> currentStateNieghbors = currentState.GetAvaiableGameStatesNieghbors();
+
+            foreach (GameState neighbor in currentStateNieghbors)
+            {
+                //don't check states we already visted
+                if (vistedStates.Any(v => GameState.StatesAreSame(v, neighbor)))
+                {
+                    continue;
+                }
+
+                vistedStates.Add(neighbor);
+                queue.Enqueue(neighbor);
+            }
+        }
+
+        //find the shortest path
+        GameState endNode = vistedStates.FirstOrDefault(s => s.CurrentMazeIndex == goalMazeIndex && s.CurrentCell.Row == goalCell.Row && s.CurrentCell.Column == goalCell.Column);
+
+        //a path to the goal cell could not be found
+        if (endNode == null)
+        {
+            return new List<GameState>();
+        }
+
+        List<GameState> path = new List<GameState>();
+        GameState current = endNode;
+
+        while (current != null)
+        {
+            //add it to list
+            path.Add(current);
+
+            //set new current state
+            current = current.ParentState;
+        }
+
+        path.Reverse();
+
+        return path;
+    }
+
+    private List<Face> ParseGameStatesToGlobalFaces(List<GameState> path)
+	{ 
+		List<Face> globalFace = new List<Face>();
+
+		for(int i  = 0; i < path.Count - 1; i++)
+		{
+			GameState currentGameState = path[i];
+			GameState nextGameState = path[i + 1];
+
+			//if the maze inicies are the same, check to see which directional face was pressed
+			if (currentGameState.CurrentMazeIndex == nextGameState.CurrentMazeIndex)
+			{ 
+				Cell currentCell = currentGameState.CurrentCell;
+				Cell nextCell = nextGameState.CurrentCell;
+
+				//UP
+				if (currentCell.Row - 1 == nextCell.Row)
+				{
+					globalFace.Add(Face.Up);
+				}
+
+				//Down
+				else if (currentCell.Row + 1 == nextCell.Row)
+				{
+                    globalFace.Add(Face.Down);
+                }
+
+                //Left
+                else if (currentCell.Column - 1 == nextCell.Column)
+                {
+                    globalFace.Add(Face.Left);
+                }
+
+                //Right
+                else if (currentCell.Column + 1 == nextCell.Column)
+                {
+                    globalFace.Add(Face.Right);
+                }
+            }
+
+			//if the maze indicies don't match, assume the player needs to press Back
+			else if(currentGameState.CurrentMazeIndex !=  nextGameState.CurrentMazeIndex)
+			{
+				globalFace.Add(Face.Back);
+			}
+		}
+
+		return globalFace;
+	}
+
+	private List<Face> ParseGameStateToLocalFace(List<GameState> path)
+	{
+		List<Face> globalFacePath =	ParseGameStatesToGlobalFaces(path);
+        return globalFacePath.Select(globalFace => cube.GetLocalFaceOfGlobalFace(globalFace)).ToList();
+    }
+
+
 }
