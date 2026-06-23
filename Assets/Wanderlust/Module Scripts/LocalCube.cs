@@ -354,7 +354,7 @@ public class LocalCube
         throw new Exception("Impossible cube state");
     }
 
-    private LocalCube Clone()
+    public LocalCube Clone()
     {
         return new LocalCube
         {
