@@ -220,15 +220,15 @@ public class Wanderlust : MonoBehaviour
 				Log("Collected the " + Ordinal(index) + " key");
 
 
-				//if (new Face[] { Face.Left, Face.Right, Face.Up }.Contains(localFace))
-				//{
-				//
-				//}
-				//
-				//else
-				//{ 
-				//	
-				//}
+				if (new Face[] { Face.Left, Face.Right, Face.Up }.Contains(localFace))
+				{
+				
+				}
+				
+				else
+				{ 
+					
+				}
 
 
             }

@@ -267,6 +267,47 @@ public class LocalCube
         //(Left, Right, Up, Down, Front, Back)
     }
 
+    public void Swap(string s1, string s2)
+    {
+        Face localFace1 = ParseFace(s1);
+        Face localFace2 = ParseFace(s2);
+
+        LocalCube oldCube = this.Clone();
+
+        Face temp = GetGlobalFaceAtLocal(localFace1);
+
+        SetGlobalFaceAtLocal(localFace1, GetGlobalFaceAtLocal(localFace2));
+        SetGlobalFaceAtLocal(localFace2, temp);
+    }
+
+    private Face GetGlobalFaceAtLocal(Face localFace)
+    {
+        switch (localFace)
+        {
+            case Face.Left: return Left;
+            case Face.Right: return Right;
+            case Face.Up: return Up;
+            case Face.Down: return Down;
+            case Face.Front: return Front;
+            case Face.Back: return Back;
+            default: throw new ArgumentOutOfRangeException("localFace");
+        }
+    }
+
+    private void SetGlobalFaceAtLocal(Face localFace, Face globalFace)
+    {
+        switch (localFace)
+        {
+            case Face.Left: Left = globalFace; break;
+            case Face.Right: Right = globalFace; break;
+            case Face.Up: Up = globalFace; break;
+            case Face.Down: Down = globalFace; break;
+            case Face.Front: Front = globalFace; break;
+            case Face.Back: Back = globalFace; break;
+            default: throw new ArgumentOutOfRangeException("localFace");
+        }
+    }
+
     /// <summary>
     /// Converrts a code into its respective local face
     /// </summary>
@@ -298,6 +339,8 @@ public class LocalCube
             default: throw new ArgumentException("Invalid face character");
         }
     }
+
+    
 
     public Face GetLocalFaceOfGlobalFace(Face globalFace)
     {
