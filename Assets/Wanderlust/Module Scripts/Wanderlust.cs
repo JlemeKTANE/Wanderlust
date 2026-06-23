@@ -8,6 +8,12 @@ using UnityEngine;
 using Rnd = UnityEngine.Random;
 public class Wanderlust : MonoBehaviour
 {
+
+	//what the goal is for the path finding. Helps with finding the last input
+	private enum Goal
+	{ 
+		Key
+	}
 	public KMBombInfo Bomb;
 	public KMAudio Audio;
 	public GameObject statuslight;
@@ -175,13 +181,9 @@ public class Wanderlust : MonoBehaviour
 		Log("First key is in maze " + key.MazeNum + " at " + GetBattshipCoorinate(key.Row, key.Col));
 		keys.Add(key);
 
-	 	
-
-		
-
         List<GameState> gameStatePath = FindPath(currentMazeIndex, key.MazeNum, bellRingCount, mazes[currentMazeIndex].grid[currentPlayerRow, currentPlayerCol], mazes[key.MazeNum].grid[key.Row, key.Col]);
-		LogPath("One path to the key:", ParseGameStatesToGlobalFaces(gameStatePath), ParseGameStateToLocalFace(gameStatePath, true, cube), ParseGameStateToLocalFace(gameStatePath, false, cube));
-
+		List<Face>[] localPaths = ParseGameStateToLocalFace(gameStatePath, cube, Goal.Key);
+        LogPath("One path to the key:", ParseGameStatesToGlobalFaces(gameStatePath, Goal.Key), localPaths[0], localPaths[1]);
     }
 
 	private void Move(Face localFace, Face globalFace)
@@ -454,7 +456,7 @@ public class Wanderlust : MonoBehaviour
         return path;
     }
 
-    private List<Face> ParseGameStatesToGlobalFaces(List<GameState> path)
+    private List<Face> ParseGameStatesToGlobalFaces(List<GameState> path, Goal goal)
 	{ 
 		List<Face> globalFace = new List<Face>();
 
@@ -501,13 +503,26 @@ public class Wanderlust : MonoBehaviour
 			}
 		}
 
+		//if the goal is a key, add global front to collect the key
+		if (goal == Goal.Key)
+		{ 
+			globalFace.Add(Face.Front);
+		}
+
 		return globalFace;
 	}
 
-	private List<Face> ParseGameStateToLocalFace(List<GameState> path, bool evenModules, LocalCube startingCube)
+	private List<Face>[] ParseGameStateToLocalFace(List<GameState> path, LocalCube startingCube, Goal goal)
+	{
+		//get even path first then odd path
+		return new bool[] { true, false }.Select(b => ParseGameStateToLocalFace(path, b, startingCube, goal)).ToArray();
+    }
+
+
+    private List<Face> ParseGameStateToLocalFace(List<GameState> path, bool evenModules, LocalCube startingCube, Goal goal)
 	{
 
-		List<Face> globalFacePath =	ParseGameStatesToGlobalFaces(path);
+		List<Face> globalFacePath =	ParseGameStatesToGlobalFaces(path, goal);
 
 		//split the global path when there is a back button (add the current cell just in case we need it for calculating bell pair rotations)
 		List<List<Tuple<Face, Cell>>> brokenFacePaths = new List<List<Tuple<Face, Cell>>>();
