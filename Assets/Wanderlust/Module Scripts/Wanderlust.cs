@@ -253,7 +253,9 @@ public class Wanderlust : MonoBehaviour
 
                 Log("The bell rang is in row " + currentCell.Row + " which corresponds to " + ((Face)currentCell.Row).ToString());
 				Log("Rotating " + bellPair[0] + " and " + bellPair[1]);
-				cube.Rotate(bellPair[0], bellPair[1], Bomb.GetSolvedModuleIDs().Count % 2 == 0);
+				int solvedModNum = Bomb.GetSolvedModuleIDs().Count;
+				Log("Number of solved mods: " + solvedModNum);
+				cube.Rotate(bellPair[0], bellPair[1], solvedModNum % 2 == 0);
                 Log("Current Cube Orientation\n" + cube);
             }
 			else
