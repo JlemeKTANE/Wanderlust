@@ -253,7 +253,7 @@ public class Wanderlust : MonoBehaviour
 
                 Log("The bell rang is in row " + currentCell.Row + " which corresponds to " + ((Face)currentCell.Row).ToString());
 				Log("Rotating " + bellPair[0] + " and " + bellPair[1]);
-				cube.Rotate(bellPair[0], bellPair[1], Bomb.GetSolvableModuleIDs().Count % 2 == 0);
+				cube.Rotate(bellPair[0], bellPair[1], Bomb.GetSolvedModuleIDs().Count % 2 == 0);
                 Log("Current Cube Orientation\n" + cube);
             }
 			else
@@ -617,9 +617,9 @@ public class Wanderlust : MonoBehaviour
 			List<Face> localFaces = globalFaces.Select(globalFace => currentCube.GetLocalFaceOfGlobalFace(globalFace)).ToList();
             localFacePath.AddRange(localFaces);
 
-			//Debug.Log("Local Cube:\n" + currentCube);
-			//Debug.Log("Global Faces: " + Join(globalFaces.Select(f => f.ToString())));
-			//Debug.Log("Local Faces: " + Join(localFaces.Select(f => f.ToString())));
+			Debug.Log("Local Cube:\n" + currentCube);
+			Debug.Log("Global Faces: " + Join(globalFaces.Select(f => f.ToString())));
+			Debug.Log("Local Faces: " + Join(localFaces.Select(f => f.ToString())));
 
             //calculate what the new cube orientation is
             Cell lastCell = l.Last().Item2;
