@@ -210,7 +210,7 @@ public class Wanderlust : MonoBehaviour
             case 2:
 				mazeNum = bellRingCount % 13;
 				row = (int)cube.GetLocalFaceOfGlobalFace(Face.Front);
-				column = (localInputs.Count() - (bellRingCount - keyIndex)) % 6;
+				column = (localInputs.Count() - bellRingCount - keyIndex) % 6;
                 break;
 
 			default:
@@ -259,7 +259,8 @@ public class Wanderlust : MonoBehaviour
 			else
 			{
 				Strike("Global back pressed when not on a bell");
-			}
+                localInputs.RemoveAt(localInputs.Count - 1);
+            }
 		}
 
 		else if (globalFace == Face.Front)
@@ -320,6 +321,7 @@ public class Wanderlust : MonoBehaviour
             else
             {
                 Strike("Global front pressed when not on the key.");
+                localInputs.RemoveAt(localInputs.Count - 1);
             }
         }
 
@@ -349,7 +351,8 @@ public class Wanderlust : MonoBehaviour
 			if (hasWall)
 			{
 				Strike("Hit a wall.");
-			}
+                localInputs.RemoveAt(localInputs.Count - 1);
+            }
 
 			else
 			{
@@ -621,7 +624,7 @@ public class Wanderlust : MonoBehaviour
             //calculate what the new cube orientation is
             Cell lastCell = l.Last().Item2;
 			string[] pair = GetBellRotationPair(lastCell.Row, localFacePath);
-			Debug.Log("Bell pair is " + Join(pair));
+			//Debug.Log("Bell pair is " + Join(pair));
 			currentCube.Rotate(pair[0], pair[1], evenModules);
 		}
 
