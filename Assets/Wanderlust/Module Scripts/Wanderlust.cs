@@ -16,8 +16,8 @@ public class Wanderlust : MonoBehaviour
 		Key
 	}
 	private KMBombInfo Bomb;
-	private KMAudio Audio;
 	private KMBombModule Module;
+	private KMAudio Audio;
 	public GameObject statuslight;
 	public Vector3 TopRightPosition;
 	public Vector3 TopLeftPosition;
@@ -51,10 +51,10 @@ public class Wanderlust : MonoBehaviour
 	public static Maze[] mazes = new Maze[13];
 	private int startingMazeIndex;
 	private int currentMazeIndex;
-	private int startingPlayerRow;
-	private int startingPlayerCol;
-	private int currentPlayerRow;
-	private int currentPlayerCol;
+	private int startingRow;
+	private int startingCol;
+	private int currentRow;
+	private int currentCol;
 	private List<Key> keys;
 	private List<Face> localInputs;
 
@@ -76,10 +76,6 @@ public class Wanderlust : MonoBehaviour
 	private int Modulo(int value, int modulo)
 	{
 		return ((value % modulo) + modulo) % modulo;
-	}
-	void buttonpressed()
-	{
-		Debug.Log("Button Pressed");
 	}
 
 	void Awake()
@@ -150,18 +146,17 @@ public class Wanderlust : MonoBehaviour
 			pairs[i / 2][i % 2] = edgeworkGrid[Row, Column];
 
 			//store for logging purposes
-			indexCalculationLogs.Add(edgeworkGrid[Row, Column] + " | Row: (" + SerialNumberToNum[i] + " + " + BatteryNum + ") % 4 = " + Column + " | Col: (" + SerialNumberToNum[i] + " - " + PortNum + ") % 3 = " + Row);
+            indexCalculationLogs.Add(string.Format("{0} | Row: ({1} + {2}) % 4 = {3} | Col: ({4} - {5}) % 3 = {6}", edgeworkGrid[Row, Column], SerialNumberToNum[i], BatteryNum, Column, SerialNumberToNum[i], Row));
 		}
 		for (int i = 0; i < pairs.Count; i++)
 		{
-			Log("Pair " + (i + 1) + ": " + pairs[i][0] + "," + pairs[i][1]);
-
+			Log(string.Format("Pair {0}: {1},{2}", i + 1, pairs[i][0], pairs[i][1]));
 		}
 
-		Log("Status Light is in the " + statusLightPosition + " corner.");
+		Log(string.Format("Status Light is in the {0} conrner.", statusLightPosition));
 		if (statusLightPair != null)
 		{
-			Log("Letter Pair 1:" + statusLightPair[0] + ", " + statusLightPair[1]);
+			Log(string.Format("Letter Pair 1: {0}, {1}", statusLightPair[0], statusLightPair[1]));
 			cube.Rotate(statusLightPair[0], statusLightPair[1], true);
 			Log("Current Cube Orientation\n" + cube);
 		}
@@ -169,7 +164,7 @@ public class Wanderlust : MonoBehaviour
 		for (int i = 0; i < pairs.Count; i++)
 		{
 			string[] pair = pairs[i];
-			Log("Letter Pair " + (i + 1 + (statusLightPair != null ? 1 : 0)) + ": " + pair[0] + ", " + pair[1]);
+            Log(string.Format("Letter Pair {0}: {1}, {2}", i + 1 + (statusLightPair != null ? 1 : 0), pair[0], pair[1]));
 			Log(indexCalculationLogs[i * 2]);
 			Log(indexCalculationLogs[(i * 2) + 1]);
 
@@ -177,17 +172,17 @@ public class Wanderlust : MonoBehaviour
 			Log("Current Cube Orientation\n" + cube);
 		}
 
-		startingPlayerRow = (int)cube.Left % 6;
-		startingPlayerCol = Bomb.GetSolvableModuleNames().Count % 6;
-		currentPlayerCol = startingPlayerCol;
-		currentPlayerRow = startingPlayerRow;
+		startingRow = (int)cube.Left % 6;
+		startingCol = Bomb.GetSolvableModuleNames().Count % 6;
+		currentCol = startingCol;
+		currentRow = startingRow;
 		startingMazeIndex = GetMazeIndex(SerialNumberToNum, bellRingCount);
 		currentMazeIndex = startingMazeIndex;
-		Log("Starting in maze " + currentMazeIndex + " at " + GetBattshipCoorinate(startingPlayerRow, startingPlayerCol));
+		Log(string.Format("Starting in maze {0} at {1}", currentMazeIndex, GetBattshipCoorinate(startingRow, startingCol)));
 		GenerateKeyLocation();
 		LogKey(0);
 		Key key = keys[0];
-		GetPathToGoal(currentMazeIndex, key.MazeNum, bellRingCount, mazes[currentMazeIndex].grid[currentPlayerRow, currentPlayerCol], mazes[key.MazeNum].grid[key.Row, key.Col], cube, Goal.Key, "One path to the key:");
+		GetPathToGoal(currentMazeIndex, key.MazeNum, bellRingCount, mazes[currentMazeIndex].grid[currentRow, currentCol], mazes[key.MazeNum].grid[key.Row, key.Col], cube, Goal.Key, "One path to the key:");
 	}
 
 	private void GetPathToGoal(int currentMazeIndex, int goalMazeIndex, int bellRingCount, Cell currentCell, Cell goalCell, LocalCube startingCube, Goal goal, string startingStr)
@@ -278,8 +273,7 @@ public class Wanderlust : MonoBehaviour
 		string localFaceStr = localFace.ToString().ToLower();
         string globalFaceStr = globalFace.ToString().ToLower();
 
-        Log("Local " + localFaceStr + " pressed which equates to global " + globalFaceStr);
-
+		Log(string.Format("Local {0} pressed which equates to global {1}", localFaceStr, globalFaceStr));
 		localInputs.Add(localFace);
 
 		Cell currentCell = GetCurrnetCell();
@@ -299,25 +293,25 @@ public class Wanderlust : MonoBehaviour
 			if (currentCell.Bell)
 			{
 				bellRingCount++;
-				Log("Rang the bell. This is the " + Ordinal(bellRingCount) + " time");
+                Log(string.Format("Rang the bell. This is the {0} time", Ordinal(bellRingCount)));
 				currentMazeIndex = GetMazeIndex(SerialNumberToNum, bellRingCount);
-				Log("Now in maze " + currentMazeIndex);
+                Log(string.Format("Now in maze {0}", currentMazeIndex));
 
 				string[] bellPair = GetBellRotationPair(currentCell.Row, localInputs);
 
 				if (localInputs.Count == 1) 
 				{
-                    Log("Only one input has been made. Using local " + localFaceStr);
+                    Log(string.Format("Only one input has been made. Using local {0}", localFaceStr));
 				}
 				else
 				{
-					Log("Second to last local input was " + localInputs[localInputs.Count - 2].ToString().ToLower());
+                    Log(string.Format("Second to last local input was {0}", localInputs[localInputs.Count - 2].ToString().ToLower()));
 				}
 
-                Log("The bell rang is in row " + currentCell.Row + " which corresponds to " + ((Face)currentCell.Row).ToString());
-				Log("Rotating " + bellPair[0] + " and " + bellPair[1]);
+                Log(string.Format("The bell rang is in row {0} which corresponds to {1}", currentCell.Row, (Face)currentCell.Row).ToString());
+                Log(string.Format("Rotating {0} and {1}", bellPair[0], bellPair[1]));
 				int solvedModNum = Bomb.GetSolvedModuleIDs().Count;
-				Log("Number of solved mods: " + solvedModNum);
+                Log(string.Format("Number of solved mods: {0}", solvedModNum));
 				cube.Rotate(bellPair[0], bellPair[1], solvedModNum % 2 == 0);
                 Log("Current Cube Orientation\n" + cube);
             }
@@ -329,38 +323,44 @@ public class Wanderlust : MonoBehaviour
 
 			if (keyIndex <= 2 && SameMazeAndCell(currentMazeIndex, currentCell.Row, currentCell.Column, desiredKey.MazeNum, desiredKey.Row, desiredKey.Col))
             {
-				Log("Collected the " + Ordinal(keyIndex + 1) + " key");
+                Log(string.Format("Collected the {0} key", Ordinal(keyIndex + 1)));
 
-				if (keyIndex == 0)
+                switch (keyIndex)
 				{
-					if (new Face[] { cube.Left, cube.Right, cube.Up }.Any(f => f == Face.Front))
-					{
-						Log("Global front is either local left, right, or up. Swapping local up and local right");
-						cube.Swap("LU", "LR");
-					}
-					else
-					{
-						Log("Global front is not either local left, right, or up. Swapping local up and local front");
-						cube.Swap("LU", "LF");
-
-					}
+					case 0:
+                        if (new Face[] { cube.Left, cube.Right, cube.Up }.Any(f => f == Face.Front))
+                        {
+                            Log("Global front is either local left, right, or up. Swapping local up and local right");
+                            cube.Swap("LU", "LR");
+                        }
+                        else
+                        {
+                            Log("Global front is not either local left, right, or up. Swapping local up and local front");
+                            cube.Swap("LU", "LF");
+                        }
+						break;
+					case 1:
+                        if (currentMazeIndex % 2 == 0)
+                        {
+                            Log("The key was in an even maze. Swapping local down with local up and local right with local left.");
+                            cube.Swap("LD", "LU");
+                            cube.Swap("LR", "LL");
+                        }
+                        else
+                        {
+                            Log("The key was in an odd maze. Swapping local front with local back and local back with local down.");
+                            cube.Swap("LF", "LB");
+                            cube.Swap("LB", "LD");
+                        }
+                        break;
+					case 2:
+						foreach (string[] pair in pairs)
+						{
+							Log(string.Format("Swapping {0} and {1}", pair[0], pair[1]));
+							cube.Swap(pair[0], pair[1]);
+						}
+						break;
 				}
-
-				else if (keyIndex == 1)
-				{
-                    if (currentMazeIndex % 2 == 0)
-                    {
-                        Log("The key was in an even maze. Swapping local down with local up and local right with local left.");
-                        cube.Swap("LD", "LU");
-                        cube.Swap("LR", "LL");
-                    }
-                    else
-                    {
-                        Log("The key was in an odd maze. Swapping local front with local back and local back with local down.");
-                        cube.Swap("LF", "LB");
-                        cube.Swap("LB", "LD");
-                    }
-                }
 
 
 				Log("Current Cube Orientation\n" + cube);
@@ -371,7 +371,13 @@ public class Wanderlust : MonoBehaviour
 					GenerateKeyLocation();
 					Key key = keys[keyIndex];
 					LogKey(keyIndex);
-					GetPathToGoal(currentMazeIndex, key.MazeNum, bellRingCount, mazes[currentMazeIndex].grid[currentPlayerRow, currentPlayerCol], mazes[key.MazeNum].grid[key.Row, key.Col], cube, Goal.Key, "One path to the key:");
+					GetPathToGoal(currentMazeIndex, key.MazeNum, bellRingCount, mazes[currentMazeIndex].grid[currentRow, currentCol], mazes[key.MazeNum].grid[key.Row, key.Col], cube, Goal.Key, "One path to the key:");
+				}
+
+				//If it is the last key, go back to the start position
+				else
+				{ 
+					
 				}
             }
             else
@@ -386,20 +392,20 @@ public class Wanderlust : MonoBehaviour
 			switch (globalFace)
 			{
 				case Face.Left:
-					currentPlayerCol--;
+					currentCol--;
 					break;
 				case Face.Right:
-					currentPlayerCol++;
+					currentCol++;
 					break;
 				case Face.Up:
-					currentPlayerRow--;
+					currentRow--;
 					break;
 				case Face.Down:
-					currentPlayerRow++;
+					currentRow++;
 					break;
 			}
 
-			Log("Now at " + GetBattshipCoorinate(currentPlayerRow, currentPlayerCol));
+			Log(string.Format("Now at {0}", GetBattshipCoorinate(currentRow, currentCol)));
 		}
     }
 
@@ -464,7 +470,7 @@ public class Wanderlust : MonoBehaviour
 	private void LogKey(int index)
 	{
 		Key key = keys[index];
-        Log(Ordinal(index + 1) + " key is in maze " + key.MazeNum + " at " + GetBattshipCoorinate(key.Row, key.Col));
+        Log(string.Format("{0} key is in the maze {1} at {2}", Ordinal(index + 1), key.MazeNum, GetBattshipCoorinate(key.Row, key.Col)));
     }
 
 	private void LogPath(string startingStr, List<Face> globalPath, List<Face> localEvenPath, List<Face> localOddPath)
@@ -484,7 +490,7 @@ public class Wanderlust : MonoBehaviour
 
 	private Cell GetCurrnetCell()
 	{
-		return mazes[currentMazeIndex].grid[currentPlayerRow, currentPlayerCol];
+		return mazes[currentMazeIndex].grid[currentRow, currentCol];
 	}
 
 	//Find the shortest path from one cell to another
@@ -715,7 +721,7 @@ public class Wanderlust : MonoBehaviour
                 bool strikeIncoming = !ValidMove(globalFace, out strikeReason);
 
                 if (strikeIncoming)
-                    yield return "strikemessage The " + Ordinal(i + 1) + " press (" + c + ") caused the strike";
+                    yield return string.Format("strikemessage The {0} press ({1}) caused the strike", Ordinal(i + 1), c);
 
                 button.OnInteract();
 
@@ -726,8 +732,8 @@ public class Wanderlust : MonoBehaviour
 		}
 		else
 		{
-			yield return "sendtochaterror Invalid Command: \"" + Command + "\"";
-			yield break;
+			yield return string.Format("sendtochaterror Invalid Command: {0}", Command);
+            yield break;
 		}
 
 	}
