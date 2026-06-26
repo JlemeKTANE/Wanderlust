@@ -3,18 +3,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using Rnd = UnityEngine.Random;
 public class Wanderlust : MonoBehaviour
 {
-
-	//what the goal is for the path finding. Helps with finding the last input
-	private enum Goal
-	{
-		Key
-	}
 	private KMBombInfo Bomb;
 	private KMBombModule Module;
 	private KMAudio Audio;
@@ -182,14 +175,14 @@ public class Wanderlust : MonoBehaviour
 		GenerateKeyLocation();
 		LogKey(0);
 		Key key = keys[0];
-		GetPathToGoal(currentMazeIndex, key.MazeNum, bellRingCount, mazes[currentMazeIndex].grid[currentRow, currentCol], mazes[key.MazeNum].grid[key.Row, key.Col], cube, Goal.Key, "One path to the key:");
+		GetPathToGoal(currentMazeIndex, key.MazeNum, bellRingCount, mazes[currentMazeIndex].grid[currentRow, currentCol], mazes[key.MazeNum].grid[key.Row, key.Col], cube, "One path to the key:");
 	}
 
-	private void GetPathToGoal(int currentMazeIndex, int goalMazeIndex, int bellRingCount, Cell currentCell, Cell goalCell, LocalCube startingCube, Goal goal, string startingStr)
+	private void GetPathToGoal(int currentMazeIndex, int goalMazeIndex, int bellRingCount, Cell currentCell, Cell goalCell, LocalCube startingCube, string startingStr)
 	{
 		List<GameState> gameStatePath = FindPath(currentMazeIndex, goalMazeIndex, bellRingCount, currentCell, goalCell);
-		List<Face>[] localPaths = ParseGameStateToLocalFace(gameStatePath, startingCube, goal);
-		LogPath(startingStr, ParseGameStatesToGlobalFaces(gameStatePath, Goal.Key), localPaths[0], localPaths[1]);
+		List<Face>[] localPaths = ParseGameStateToLocalFace(gameStatePath, startingCube);
+		LogPath(startingStr, ParseGameStatesToGlobalFaces(gameStatePath), localPaths[0], localPaths[1]);
 	}
 
 	private void GenerateKeyLocation()
@@ -371,7 +364,7 @@ public class Wanderlust : MonoBehaviour
 					GenerateKeyLocation();
 					Key key = keys[keyIndex];
 					LogKey(keyIndex);
-					GetPathToGoal(currentMazeIndex, key.MazeNum, bellRingCount, mazes[currentMazeIndex].grid[currentRow, currentCol], mazes[key.MazeNum].grid[key.Row, key.Col], cube, Goal.Key, "One path to the key:");
+					GetPathToGoal(currentMazeIndex, key.MazeNum, bellRingCount, mazes[currentMazeIndex].grid[currentRow, currentCol], mazes[key.MazeNum].grid[key.Row, key.Col], cube, "One path to the key:");
 				}
 
 				//If it is the last key, go back to the start position
@@ -553,7 +546,7 @@ public class Wanderlust : MonoBehaviour
         return path;
     }
 
-    private List<Face> ParseGameStatesToGlobalFaces(List<GameState> path, Goal goal)
+    private List<Face> ParseGameStatesToGlobalFaces(List<GameState> path)
 	{ 
 		List<Face> globalFace = new List<Face>();
 
@@ -600,24 +593,21 @@ public class Wanderlust : MonoBehaviour
 			}
 		}
 
-		//if the goal is a key, add global front to collect the key
-		if (goal == Goal.Key)
-		{ 
-			globalFace.Add(Face.Front);
-		}
+		//add global front to submit
+		globalFace.Add(Face.Front);
 
 		return globalFace;
 	}
 
-	private List<Face>[] ParseGameStateToLocalFace(List<GameState> path, LocalCube startingCube, Goal goal)
+	private List<Face>[] ParseGameStateToLocalFace(List<GameState> path, LocalCube startingCube)
 	{
 		//get even path first then odd path
-		return new bool[] { true, false }.Select(b => ParseGameStateToLocalFace(path, b, startingCube, goal)).ToArray();
+		return new bool[] { true, false }.Select(b => ParseGameStateToLocalFace(path, b, startingCube)).ToArray();
     }
 
-    private List<Face> ParseGameStateToLocalFace(List<GameState> path, bool evenModules, LocalCube startingCube, Goal goal)
+    private List<Face> ParseGameStateToLocalFace(List<GameState> path, bool evenModules, LocalCube startingCube)
 	{
-		List<Face> globalFacePath =	ParseGameStatesToGlobalFaces(path, goal);
+		List<Face> globalFacePath =	ParseGameStatesToGlobalFaces(path);
 
 		//split the global path when there is a back button (add the current cell just in case we need it for calculating bell pair rotations)
 		List<List<Tuple<Face, Cell>>> brokenFacePaths = new List<List<Tuple<Face, Cell>>>();
