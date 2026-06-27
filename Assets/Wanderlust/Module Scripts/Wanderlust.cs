@@ -139,7 +139,7 @@ public class Wanderlust : MonoBehaviour
 			pairs[i / 2][i % 2] = edgeworkGrid[Row, Column];
 
 			//store for logging purposes
-            indexCalculationLogs.Add(string.Format("{0} | Row: ({1} + {2}) % 4 = {3} | Col: ({4} - {5}) % 3 = {6}", edgeworkGrid[Row, Column], SerialNumberToNum[i], BatteryNum, Column, SerialNumberToNum[i], Row));
+            indexCalculationLogs.Add(string.Format("{0} | Row: ({1} + {2}) % 4 = {3} | Col: ({4} - {5}) % 3 = {6}", edgeworkGrid[Row, Column], SerialNumberToNum[i], BatteryNum, Column, SerialNumberToNum[i], PortNum, Row));
 		}
 		for (int i = 0; i < pairs.Count; i++)
 		{
