@@ -50,6 +50,7 @@ public class Wanderlust : MonoBehaviour
 	private int currentCol;
 	private List<Key> keys;
 	private List<Face> localInputs;
+	
 
 	private enum Direction
 	{
@@ -226,15 +227,41 @@ public class Wanderlust : MonoBehaviour
         {
             Key desiredKey = keys.Last();
 
-            if (!(keyIndex <= 2 &&
-                  SameMazeAndCell(currentMazeIndex,
-                                  currentCell.Row,
-                                  currentCell.Column,
-                                  desiredKey.MazeNum,
-                                  desiredKey.Row,
-                                  desiredKey.Col)))
+            //false if
+
+            //the key index is less than or equal 2 and current cell is not the same as goal
+
+            //the key index is equal to 3 and current cell is not the same as goal
+
+            int targetMaze;
+            int targetRow;
+            int targetCol;
+            string targetName;
+
+            if (keyIndex <= 2)
             {
-                strikeReason = "Global front pressed when not on the key";
+                targetMaze = desiredKey.MazeNum;
+                targetRow = desiredKey.Row;
+                targetCol = desiredKey.Col;
+                targetName = "key";
+            }
+            else
+            {
+                targetMaze = startingMazeIndex;
+                targetRow = startingRow;
+                targetCol = startingCol;
+                targetName = "starting cell";
+            }
+
+            if (!SameMazeAndCell(
+                    currentMazeIndex,
+                    currentCell.Row,
+                    currentCell.Column,
+                    targetMaze,
+                    targetRow,
+                    targetCol))
+            {
+                strikeReason = string.Format("Global front pressed when not on the {0}", targetName);
                 return false;
             }
         }
@@ -315,37 +342,37 @@ public class Wanderlust : MonoBehaviour
 			Key desiredKey = keys.Last();
 
 			if (keyIndex <= 2 && SameMazeAndCell(currentMazeIndex, currentCell.Row, currentCell.Column, desiredKey.MazeNum, desiredKey.Row, desiredKey.Col))
-            {
-                Log(string.Format("Collected the {0} key", Ordinal(keyIndex + 1)));
+			{
+				Log(string.Format("Collected the {0} key", Ordinal(keyIndex + 1)));
 
-                switch (keyIndex)
+				switch (keyIndex)
 				{
 					case 0:
-                        if (new Face[] { cube.Left, cube.Right, cube.Up }.Any(f => f == Face.Front))
-                        {
-                            Log("Global front is either local left, right, or up. Swapping local up and local right");
-                            cube.Swap("LU", "LR");
-                        }
-                        else
-                        {
-                            Log("Global front is not either local left, right, or up. Swapping local up and local front");
-                            cube.Swap("LU", "LF");
-                        }
+						if (new Face[] { cube.Left, cube.Right, cube.Up }.Any(f => f == Face.Front))
+						{
+							Log("Global front is either local left, right, or up. Swapping local up and local right");
+							cube.Swap("LU", "LR");
+						}
+						else
+						{
+							Log("Global front is not either local left, right, or up. Swapping local up and local front");
+							cube.Swap("LU", "LF");
+						}
 						break;
 					case 1:
-                        if (currentMazeIndex % 2 == 0)
-                        {
-                            Log("The key was in an even maze. Swapping local down with local up and local right with local left.");
-                            cube.Swap("LD", "LU");
-                            cube.Swap("LR", "LL");
-                        }
-                        else
-                        {
-                            Log("The key was in an odd maze. Swapping local front with local back and local back with local down.");
-                            cube.Swap("LF", "LB");
-                            cube.Swap("LB", "LD");
-                        }
-                        break;
+						if (currentMazeIndex % 2 == 0)
+						{
+							Log("The key was in an even maze. Swapping local down with local up and local right with local left.");
+							cube.Swap("LD", "LU");
+							cube.Swap("LR", "LL");
+						}
+						else
+						{
+							Log("The key was in an odd maze. Swapping local front with local back and local back with local down.");
+							cube.Swap("LF", "LB");
+							cube.Swap("LB", "LD");
+						}
+						break;
 					case 2:
 						foreach (string[] pair in pairs)
 						{
@@ -369,15 +396,17 @@ public class Wanderlust : MonoBehaviour
 
 				//If it is the last key, go back to the start position
 				else
-				{ 
-					
+				{
+					keyIndex++;
+					Log(string.Format("Going back to starting position which is in maze {0} {1}", startingMazeIndex, GetBattshipCoorinate(startingRow, startingCol)));
+					GetPathToGoal(currentMazeIndex, startingMazeIndex, bellRingCount, mazes[currentMazeIndex].grid[currentRow, currentCol], mazes[startingMazeIndex].grid[startingRow, startingCol], cube, "One path to the start:");
 				}
-            }
-            else
-            {
-                Strike("Global front pressed when not on the key.");
-                localInputs.RemoveAt(localInputs.Count - 1);
-            }
+			}
+			else
+			{
+				Log("Moule Solved");
+				Module.HandlePass();
+			}
         }
 
 		else
