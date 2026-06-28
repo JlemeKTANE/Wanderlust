@@ -1979,6 +1979,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e77afd1685d624e4bbb35e40fa69bcc8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  debugMode: 1
+  debugStatusPosition: 0
   statuslight: {fileID: 1678764348296116}
   TopRightPosition: {x: 0.075, y: 0, z: 0.075}
   TopLeftPosition: {x: -0.075, y: 0, z: 0.075}

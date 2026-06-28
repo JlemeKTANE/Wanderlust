@@ -1,7 +1,5 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
 //State to help with BFS
 public class GameState
 {
@@ -78,6 +76,6 @@ public class GameState
 
     public override string ToString()
     {
-        return "Current Maze Index: " + CurrentMazeIndex + " | Row: " + CurrentCell.Row + " | Column: " + CurrentCell.Column + "| Bell Ring Count: " + BellRingCount; 
+        return string.Format("Game State\nMaze Index: {0}\nRow: {1}\nColumn: {2}\nBell Ring Count: {3}", CurrentMazeIndex, CurrentCell.Row, CurrentCell.Column, BellRingCount);
     }
 }
