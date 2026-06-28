@@ -470,6 +470,7 @@ public class Wanderlust : MonoBehaviour
 			case MoveResult.SubmitStart:
 				Log("Moule Solved");
 				Module.HandlePass();
+				moduleSolved = true;
 				break;
 
 			case MoveResult.MoveLeft:
@@ -547,7 +548,7 @@ public class Wanderlust : MonoBehaviour
         }
 	}
 
-	private string GetBattshipCoorinate(int row, int col)
+	public static string GetBattshipCoorinate(int row, int col)
 	{
 		return "" + (char)('A' + col) + (row + 1);
 	}
@@ -583,12 +584,12 @@ public class Wanderlust : MonoBehaviour
     {
         Log(label + ": " + Join(path));
 
-		if (logAbbreviated)
+        //copy to keybaord for tp
+		if (logAbbreviated && debugMode)
 		{
 			string abbreviation = Join(path.Select(p => "" + p.ToString()[0]), "");
             Debug.Log(abbreviation);
 
-            //copy to keybaord for tp
 			if(copyToKeyboard)
 			{
 				GUIUtility.systemCopyBuffer = string.Format("!1 {0}", abbreviation);
@@ -617,19 +618,13 @@ public class Wanderlust : MonoBehaviour
 		//help for logging game states for debugging
 		bool debug = currentMazeIndex == 9 && currentCell.Row == 2 && currentCell.Column == 0 && goalMazeIndex == 6 && goalCell.Row == 3 && goalCell.Column == 1;
 
-		Debug.Log("current maze: " + currentMazeIndex);
-		Debug.Log("current row: " + currentCell.Row);
-		Debug.Log("current col: " + currentCell.Column);
-		Debug.Log("goal maze: " + goalMazeIndex);
-		Debug.Log("goal row: " + goalCell.Row);
-		Debug.Log("goal cell: " + goalCell.Column);
-
+		debug = false;
         //set the serial number
         GameState.SerialNumberToNum = SerialNumberToNum;
 
         GameState startingState = new GameState(currentMazeIndex, bellRingCount, currentCell, null);
 
-        List<GameState> vistedStates = new List<GameState>();
+        List<GameState> vistedStates = new List<GameState>() { startingState };
         Queue<GameState> queue = new Queue<GameState>();
 
         queue.Enqueue(startingState);
@@ -639,11 +634,6 @@ public class Wanderlust : MonoBehaviour
 		{
 			GameState currentState = queue.Dequeue();
 
-			if (debug)
-			{
-				Debug.Log(string.Format("Current State: {0}", currentState));
-			}
-
             //get all the valid neighbors
             List<GameState> currentStateNieghbors = currentState.GetAvaiableGameStatesNieghbors();
 
@@ -652,18 +642,8 @@ public class Wanderlust : MonoBehaviour
                 //don't check states we already visted
                 if (vistedStates.Any(v => GameState.StatesAreSame(v, neighbor)))
                 {
-					if (debug)
-					{ 
-						Debug.Log(string.Format("Not checking neigbor state: {0}", currentState));
-					}
                     continue;
                 }
-
-				if (debug)
-				{
-					Debug.Log("Add current state to visited: " + currentState);
-					Debug.Log("Add neigbor state to queue: " + neighbor);
-				}
 
                 vistedStates.Add(neighbor);
                 queue.Enqueue(neighbor);
@@ -752,10 +732,10 @@ public class Wanderlust : MonoBehaviour
 	private List<Face>[] ParseGameStateToLocalFace(List<GameState> path, LocalCube startingCube)
 	{
 		//get even path first then odd path
-		return new bool[] { true, false }.Select(b => ParseGameStateToLocalFace(path, b, startingCube)).ToArray();
+		return new bool[] { true, false }.Select(b => ParseGameStateToLocalFace(path, b, startingCube, localInputs)).ToArray();
     }
 
-    private List<Face> ParseGameStateToLocalFace(List<GameState> path, bool evenModules, LocalCube startingCube)
+    private List<Face> ParseGameStateToLocalFace(List<GameState> path, bool evenModules, LocalCube startingCube, List<Face> currentLocalInputs)
 	{
 		List<Face> globalFacePath =	ParseGameStatesToGlobalFaces(path);
 
@@ -777,21 +757,25 @@ public class Wanderlust : MonoBehaviour
 			}
         }
 
+		//need to take previous moves from other find path calls in account to get adequate bell rotations
+		List<Face> localFacePathWithCurrentInputs = currentLocalInputs.ToList();
         List<Face> localFacePath = new List<Face>();
 
-		//Calcuclate the local face directions broken up when pressing back due to cube rotations
-		LocalCube currentCube = startingCube.Clone();
+        //Calcuclate the local face directions broken up when pressing back due to cube rotations
+        LocalCube currentCube = startingCube.Clone();
 
         foreach (List<Tuple<Face, Cell>> l in brokenFacePaths)
 		{
 			List<Face> globalFaces = l.Select(t => t.Item1).ToList();
 			List<Face> localFaces = globalFaces.Select(globalFace => currentCube.GetLocalFaceOfGlobalFace(globalFace)).ToList();
             localFacePath.AddRange(localFaces);
+			localFacePathWithCurrentInputs.AddRange(localFaces);
 
             //calculate what the new cube orientation is
             Cell lastCell = l.Last().Item2;
-			string[] pair = GetBellRotationPair(lastCell.Row, localFacePath);
-			currentCube.Rotate(pair[0], pair[1], evenModules);
+			string[] pair = GetBellRotationPair(lastCell.Row, localFacePathWithCurrentInputs);
+
+            currentCube.Rotate(pair[0], pair[1], evenModules);
 		}
 
 		return localFacePath;

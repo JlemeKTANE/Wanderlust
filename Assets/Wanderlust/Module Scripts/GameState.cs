@@ -32,23 +32,26 @@ public class GameState
         //get all the neighbor cells within the same maze
         List<Cell> neighbors = new List<Cell>();
 
-        
+        Cell[,] grid = Wanderlust.mazes[CurrentMazeIndex].grid;
+
         if (!CurrentCell.UpWall && CurrentCell.Row != 0)
         {
-            neighbors.Add(Wanderlust.mazes[CurrentMazeIndex].grid[CurrentCell.Row - 1, CurrentCell.Column]);
+            neighbors.Add(grid[CurrentCell.Row - 1, CurrentCell.Column]);
 
         }
         if (!CurrentCell.DownWall && CurrentCell.Row != 5)
         {
-            neighbors.Add(Wanderlust.mazes[CurrentMazeIndex].grid[CurrentCell.Row + 1, CurrentCell.Column]);
+            neighbors.Add(grid[CurrentCell.Row + 1, CurrentCell.Column]);
+
         }
         if (!CurrentCell.RightWall && CurrentCell.Column != 5)
         {
-            neighbors.Add(Wanderlust.mazes[CurrentMazeIndex].grid[CurrentCell.Row, CurrentCell.Column + 1]);
+            neighbors.Add(grid[CurrentCell.Row, CurrentCell.Column + 1]);
+
         }
         if (!CurrentCell.LeftWall && CurrentCell.Column != 0)
         {
-            neighbors.Add(Wanderlust.mazes[CurrentMazeIndex].grid[CurrentCell.Row, CurrentCell.Column - 1]);
+            neighbors.Add(grid[CurrentCell.Row, CurrentCell.Column - 1]);
         }
 
         foreach (Cell cell in neighbors)
@@ -76,6 +79,7 @@ public class GameState
 
     public override string ToString()
     {
-        return string.Format("Game State\nMaze Index: {0}\nRow: {1}\nColumn: {2}\nBell Ring Count: {3}", CurrentMazeIndex, CurrentCell.Row, CurrentCell.Column, BellRingCount);
+        string position = Wanderlust.GetBattshipCoorinate(CurrentCell.Row, CurrentCell.Column);
+        return string.Format("\nGame State\nMaze Index: {0}\nPosition: {1}\nBell Ring Count: {2}", CurrentMazeIndex, position, BellRingCount);
     }
 }
