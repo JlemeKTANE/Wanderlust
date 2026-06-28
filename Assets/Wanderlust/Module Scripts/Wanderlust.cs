@@ -30,23 +30,22 @@ public class Wanderlust : MonoBehaviour
 
     [Header("Module Stuff")]
     public GameObject statuslight;
-	[SerializeField]
-	private Vector3 TopRightPosition;
     [SerializeField]
-    private Vector3 TopLeftPosition;
+    private Vector3 topLeftPosition;
     [SerializeField]
-    private Vector3 BottomRightPosition;
+    private Vector3 bottomRightPosition;
     [SerializeField]
-    private Vector3 BottomLeftPosition;
+    private Vector3 bottomLeftPosition;
 
-	public KMSelectable ButtonL, ButtonR, ButtonU, ButtonD, ButtonF, ButtonB;
+	public KMSelectable buttonL, buttonR, buttonU, buttonD, buttonF, buttonB;
+	private KMSelectable statusLightKMS;
 
 	private string SerialNumber;
 	private int BatteryNum;
 	private int PortNum;
 	private int ModuleId;
 	private static int ModuleIdCounter = 1;
-	private List<string[]> pairs = new List<string[]>();
+	private List<string[]> pairs;
 
     private readonly string[,] edgeworkGrid = new string[3, 4]
 {
@@ -69,15 +68,10 @@ public class Wanderlust : MonoBehaviour
 	private int currentCol;
 	private List<Key> keys;
 	private List<Face> localInputs;
-	
 
-	private enum Direction
-	{
-		Up,
-		Down,
-		Left,
-		Right
-	}
+	private bool statusHeld = false;
+	private bool resetSoundPlayed = false;
+	private float resetTimer = 0.0f;
 
 	private enum MoveResult
 	{ 
@@ -109,15 +103,20 @@ public class Wanderlust : MonoBehaviour
 	void Awake()
 	{
         moduleSolved = false;
+        
 
-        ButtonL.OnInteract += delegate () { Move(Face.Left, cube.Left, ButtonL); return false; };
-		ButtonR.OnInteract += delegate () { Move(Face.Right, cube.Right, ButtonR); return false; };
-		ButtonU.OnInteract += delegate () { Move(Face.Up, cube.Up, ButtonU); return false; };
-		ButtonD.OnInteract += delegate () { Move(Face.Down, cube.Down, ButtonD); return false; };
-		ButtonF.OnInteract += delegate () { Move(Face.Front, cube.Front, ButtonF); return false; };
-		ButtonB.OnInteract += delegate () { Move(Face.Back, cube.Back, ButtonB); return false; };
+        buttonL.OnInteract += delegate () { Move(Face.Left, cube.Left, buttonL); return false; };
+		buttonR.OnInteract += delegate () { Move(Face.Right, cube.Right, buttonR); return false; };
+		buttonU.OnInteract += delegate () { Move(Face.Up, cube.Up, buttonU); return false; };
+		buttonD.OnInteract += delegate () { Move(Face.Down, cube.Down, buttonD); return false; };
+		buttonF.OnInteract += delegate () { Move(Face.Front, cube.Front, buttonF); return false; };
+		buttonB.OnInteract += delegate () { Move(Face.Back, cube.Back, buttonB); return false; };
 
-		Bomb = GetComponent<KMBombInfo>();
+        statusLightKMS = statuslight.GetComponent<KMSelectable>();
+        statusLightKMS.OnInteract += delegate () { statusHeld = true; return false;  };
+        statusLightKMS.OnInteractEnded += delegate () { statusHeld = false; resetTimer = 0.0f; resetSoundPlayed = false;  };
+
+        Bomb = GetComponent<KMBombInfo>();
 		Audio = GetComponent<KMAudio>();
 		Module = GetComponent<KMBombModule>();
 
@@ -125,100 +124,122 @@ public class Wanderlust : MonoBehaviour
 	}
 	void Start()
 	{
-        keyIndex = -1;
-		localInputs = new List<Face>();
-		for (int i = 0; i < 13; i++)
-		{
-			mazes[i] = new Maze(i);
-		}
-		keys = new List<Key>();
-		bellRingCount = 0;
-		StatusLightPosition statusPosition = (StatusLightPosition)Rnd.Range(0, 4);
-		if (debugMode)
-		{
-            statusPosition = debugStatusPosition;
-		}
-		string statusPositionStr = "";
-		string[] statusLightPair = null;
-		switch (statusPosition)
-		{
-			case StatusLightPosition.TopLeft:
-				statuslight.transform.localPosition = TopLeftPosition;
-				statusLightPair = new string[] { "LU", "LL" };
-				statusPositionStr = "top left";
-				break;
-			case StatusLightPosition.BottomRight:
-				statuslight.transform.localPosition = BottomRightPosition;
-				statusLightPair = new string[] { "LU", "LR" };
-				statusPositionStr = "bottom right";
-				break;
-			case StatusLightPosition.BottomLeft:
-				statuslight.transform.localPosition = BottomLeftPosition;
-				statusLightPair = new string[] { "LU", "LD" };
-				statusPositionStr = "bottom left";
-				break;
-			case StatusLightPosition.TopRight:
-				statusPositionStr = "top right";
-				break;
-		}
-		cube = new LocalCube();
-		BatteryNum = Bomb.GetBatteryCount();
-		PortNum = Bomb.GetPortCount();
-		SerialNumber = Bomb.GetSerialNumber().ToUpper();
-		SerialNumberToNum = SerialNumber.Select(x => char.IsDigit(x) ? int.Parse("" + x) : x - 'A' + 1).ToArray();
-		List<string> indexCalculationLogs = new List<string>();
+		SetUpModule();
 
-		for (int i = 0; i < SerialNumberToNum.Length; i++)
+    }
+
+	void Update()
+	{
+		if (statusHeld && !resetSoundPlayed)
 		{
-			int Column = Modulo(SerialNumberToNum[i] + BatteryNum, 4);
-			int Row = Modulo(SerialNumberToNum[i] - PortNum, 3);
-			if (i % 2 == 0)
+			resetTimer += Time.deltaTime;
+			if (resetTimer >= 5)
 			{
-				pairs.Add(new string[2]);
-			}
-			pairs[i / 2][i % 2] = edgeworkGrid[Row, Column];
-
-			//store for logging purposes
-            indexCalculationLogs.Add(string.Format("{0} | Row: ({1} + {2}) % 4 = {3} | Col: ({4} - {5}) % 3 = {6}", edgeworkGrid[Row, Column], SerialNumberToNum[i], BatteryNum, Column, SerialNumberToNum[i], PortNum, Row));
+				//play reeset sound here
+				resetSoundPlayed = true;
+				Log("Status light was held for 5 seconds. Resetting the module...");
+				SetUpModule();
+            }
 		}
-		for (int i = 0; i < pairs.Count; i++)
-		{
-			Log(string.Format("Pair {0}: {1},{2}", i + 1, pairs[i][0], pairs[i][1]));
-		}
-
-		Log(string.Format("Status Light is in the {0} conrner.", statusPositionStr));
-		if (statusLightPair != null)
-		{
-			Log(string.Format("Letter Pair 1: {0}, {1}", statusLightPair[0], statusLightPair[1]));
-			cube.Rotate(statusLightPair[0], statusLightPair[1], true);
-			Log("Current Cube Orientation\n" + cube);
-		}
-
-		for (int i = 0; i < pairs.Count; i++)
-		{
-			string[] pair = pairs[i];
-            Log(string.Format("Letter Pair {0}: {1}, {2}", i + 1 + (statusLightPair != null ? 1 : 0), pair[0], pair[1]));
-			Log(indexCalculationLogs[i * 2]);
-			Log(indexCalculationLogs[(i * 2) + 1]);
-
-			cube.Rotate(pair[0], pair[1], true);
-			Log("Current Cube Orientation\n" + cube);
-		}
-
-		startingRow = (int)cube.Left % 6;
-		startingCol = Bomb.GetSolvableModuleNames().Count % 6;
-		currentCol = startingCol;
-		currentRow = startingRow;
-		startingMazeIndex = GetMazeIndex(SerialNumberToNum, bellRingCount);
-		currentMazeIndex = startingMazeIndex;
-		Log(string.Format("Starting in maze {0} at {1}", currentMazeIndex, GetBattshipCoorinate(startingRow, startingCol)));
-		GenerateKeyLocation();
-		LogKey(0);
-		Key key = keys[0];
-		GetPathToGoal(currentMazeIndex, key.MazeNum, bellRingCount, mazes[currentMazeIndex].grid[currentRow, currentCol], mazes[key.MazeNum].grid[key.Row, key.Col], cube, "One path to the key:");
 	}
 
-	private void GetPathToGoal(int currentMazeIndex, int goalMazeIndex, int bellRingCount, Cell currentCell, Cell goalCell, LocalCube startingCube, string startingStr)
+    private void SetUpModule()
+    {
+        keyIndex = -1;
+        localInputs = new List<Face>();
+		pairs = new List<string[]>();
+        for (int i = 0; i < 13; i++)
+        {
+            mazes[i] = new Maze(i);
+        }
+        keys = new List<Key>();
+        bellRingCount = 0;
+        StatusLightPosition statusPosition = (StatusLightPosition)Rnd.Range(0, 4);
+        if (debugMode)
+        {
+            statusPosition = debugStatusPosition;
+        }
+        string statusPositionStr = "";
+        string[] statusLightPair = null;
+        switch (statusPosition)
+        {
+            case StatusLightPosition.TopLeft:
+                statuslight.transform.localPosition = topLeftPosition;
+                statusLightPair = new string[] { "LU", "LL" };
+                statusPositionStr = "top left";
+                break;
+            case StatusLightPosition.BottomRight:
+                statuslight.transform.localPosition = bottomRightPosition;
+                statusLightPair = new string[] { "LU", "LR" };
+                statusPositionStr = "bottom right";
+                break;
+            case StatusLightPosition.BottomLeft:
+                statuslight.transform.localPosition = bottomLeftPosition;
+                statusLightPair = new string[] { "LU", "LD" };
+                statusPositionStr = "bottom left";
+                break;
+            case StatusLightPosition.TopRight:
+                statusPositionStr = "top right";
+                break;
+        }
+        cube = new LocalCube();
+        BatteryNum = Bomb.GetBatteryCount();
+        PortNum = Bomb.GetPortCount();
+        SerialNumber = Bomb.GetSerialNumber().ToUpper();
+        SerialNumberToNum = SerialNumber.Select(x => char.IsDigit(x) ? int.Parse("" + x) : x - 'A' + 1).ToArray();
+        List<string> indexCalculationLogs = new List<string>();
+
+        for (int i = 0; i < SerialNumberToNum.Length; i++)
+        {
+            int Column = Modulo(SerialNumberToNum[i] + BatteryNum, 4);
+            int Row = Modulo(SerialNumberToNum[i] - PortNum, 3);
+            if (i % 2 == 0)
+            {
+                pairs.Add(new string[2]);
+            }
+            pairs[i / 2][i % 2] = edgeworkGrid[Row, Column];
+
+            //store for logging purposes
+            indexCalculationLogs.Add(string.Format("{0} | Row: ({1} + {2}) % 4 = {3} | Col: ({4} - {5}) % 3 = {6}", edgeworkGrid[Row, Column], SerialNumberToNum[i], BatteryNum, Column, SerialNumberToNum[i], PortNum, Row));
+        }
+        for (int i = 0; i < pairs.Count; i++)
+        {
+            Log(string.Format("Pair {0}: {1},{2}", i + 1, pairs[i][0], pairs[i][1]));
+        }
+
+        Log(string.Format("Status Light is in the {0} conrner.", statusPositionStr));
+        if (statusLightPair != null)
+        {
+            Log(string.Format("Letter Pair 1: {0}, {1}", statusLightPair[0], statusLightPair[1]));
+            cube.Rotate(statusLightPair[0], statusLightPair[1], true);
+            Log("Current Cube Orientation\n" + cube);
+        }
+
+        for (int i = 0; i < pairs.Count; i++)
+        {
+            string[] pair = pairs[i];
+            Log(string.Format("Letter Pair {0}: {1}, {2}", i + 1 + (statusLightPair != null ? 1 : 0), pair[0], pair[1]));
+            Log(indexCalculationLogs[i * 2]);
+            Log(indexCalculationLogs[(i * 2) + 1]);
+
+            cube.Rotate(pair[0], pair[1], true);
+            Log("Current Cube Orientation\n" + cube);
+        }
+
+        startingRow = (int)cube.Left % 6;
+        startingCol = Bomb.GetSolvableModuleNames().Count % 6;
+        currentCol = startingCol;
+        currentRow = startingRow;
+        startingMazeIndex = GetMazeIndex(SerialNumberToNum, bellRingCount);
+        currentMazeIndex = startingMazeIndex;
+        Log(string.Format("Starting in maze {0} at {1}", currentMazeIndex, GetBattshipCoorinate(startingRow, startingCol)));
+        GenerateKeyLocation();
+        LogKey(0);
+        Key key = keys[0];
+        GetPathToGoal(currentMazeIndex, key.MazeNum, bellRingCount, mazes[currentMazeIndex].grid[currentRow, currentCol], mazes[key.MazeNum].grid[key.Row, key.Col], cube, "One path to the key:");
+    }
+
+    private void GetPathToGoal(int currentMazeIndex, int goalMazeIndex, int bellRingCount, Cell currentCell, Cell goalCell, LocalCube startingCube, string startingStr)
 	{
 		List<GameState> gameStatePath = FindPath(currentMazeIndex, goalMazeIndex, bellRingCount, currentCell, goalCell);
 		List<Face>[] localPaths = ParseGameStateToLocalFace(gameStatePath, startingCube);
@@ -817,27 +838,27 @@ public class Wanderlust : MonoBehaviour
                 {
                     case 'L':
 						globalFace = cube.Left;
-						button = ButtonL;
+						button = buttonL;
                         break;
                     case 'R':
                         globalFace = cube.Right;
-                        button = ButtonR;
+                        button = buttonR;
                         break;
                     case 'U':
                         globalFace = cube.Up;
-                        button = ButtonU;
+                        button = buttonU;
                         break;
                     case 'D':
                         globalFace = cube.Down;
-                        button = ButtonD;
+                        button = buttonD;
                         break;
                     case 'F':
                         globalFace = cube.Front;
-                        button = ButtonF;
+                        button = buttonF;
                         break;
                     case 'B':
                         globalFace = cube.Back;
-                        button = ButtonB;
+                        button = buttonB;
                         break;
                 }
 
