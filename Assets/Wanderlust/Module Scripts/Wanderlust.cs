@@ -73,6 +73,7 @@ public class Wanderlust : MonoBehaviour
 	private bool resetSoundPlayed = false;
 	private float resetTimer = 0.0f;
 
+	private string evenPathToGoal, oddPathToGoal;
 	private enum MoveResult
 	{ 
 		BellStrike,
@@ -597,18 +598,19 @@ public class Wanderlust : MonoBehaviour
 
 		bool evenSolves = Bomb.GetSolvedModuleIDs().Count() % 2 == 0;
         LogPathVariant("Global path", globalPath, false, false);
-        LogPathVariant("Local path for even solved modules", localEvenPath, true, evenSolves);
-        LogPathVariant("Local path for odd solved modules", localOddPath, true, !evenSolves);
+        evenPathToGoal = LogPathVariant("Local path for even solved modules", localEvenPath, true, evenSolves);
+        oddPathToGoal = LogPathVariant("Local path for odd solved modules", localOddPath, true, !evenSolves);
     }
 
-    private void LogPathVariant(string label, List<Face> path, bool logAbbreviated, bool copyToKeyboard)
+    private string LogPathVariant(string label, List<Face> path, bool logAbbreviated, bool copyToKeyboard)
     {
         Log(label + ": " + Join(path));
 
+        string abbreviation = Join(path.Select(p => "" + p.ToString()[0]), "");
+
         //copy to keybaord for tp
-		if (logAbbreviated && debugMode)
+        if (logAbbreviated && debugMode)
 		{
-			string abbreviation = Join(path.Select(p => "" + p.ToString()[0]), "");
             Debug.Log(abbreviation);
 
 			if(copyToKeyboard)
@@ -616,6 +618,8 @@ public class Wanderlust : MonoBehaviour
 				GUIUtility.systemCopyBuffer = string.Format("!1 {0}", abbreviation);
 			}
 		}
+
+		return abbreviation;
     }
 
     private string Join(IEnumerable<Face> collection, string seperator = ", ")
@@ -871,6 +875,8 @@ public class Wanderlust : MonoBehaviour
 
                 if (strikeIncoming)
                     yield break;
+
+                yield return new WaitForSeconds(0.1f);
             }
             yield break;
 		}
@@ -883,8 +889,26 @@ public class Wanderlust : MonoBehaviour
 	}
     IEnumerator TwitchHandleForcedSolve()
 	{
-		yield return null;
-	}
+		//reset the module
+		statusLightKMS.OnInteract();
+		yield return new WaitUntil(() => resetSoundPlayed);
+        statusLightKMS.OnInteractEnded();
+
+		//get the local list of moves for keys and start position
+		for (int i = 0; i < 4; i++)
+		{
+			yield return new WaitForSeconds(0.1f);
+			bool evenMods = Bomb.GetSolvedModuleIDs().Count() % 2 == 0;
+			string path = evenMods ? evenPathToGoal : oddPathToGoal;
+			yield return ProcessTwitchCommand(path);
+        }
+
+
+        while (!moduleSolved)
+        {
+            yield return null;
+        }
+    }
 
 	//helper function to copy the tp path to clipboard
     public void CopyTextToClipboard(string textToCopy)
