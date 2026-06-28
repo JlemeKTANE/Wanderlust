@@ -2112,7 +2112,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e77afd1685d624e4bbb35e40fa69bcc8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  debugMode: 1
+  debugMode: 0
   debugStatusPosition: 0
   statuslight: {fileID: 1678764348296116}
   topLeftPosition: {x: -0.075, y: 0, z: 0.075}

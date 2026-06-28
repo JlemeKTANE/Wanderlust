@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
-using UnityEngine.Rendering;
 using Rnd = UnityEngine.Random;
 public class Wanderlust : MonoBehaviour
 {
@@ -23,7 +22,7 @@ public class Wanderlust : MonoBehaviour
 
     [Header("Debug Mode")]
     [SerializeField]
-    private bool debugMode;
+    private readonly bool debugMode;
     [SerializeField]
     private StatusLightPosition debugStatusPosition;
 
@@ -72,8 +71,10 @@ public class Wanderlust : MonoBehaviour
 	private bool statusHeld = false;
 	private bool resetSoundPlayed = false;
 	private float resetTimer = 0.0f;
+	StatusLightPosition statusPosition;
 
-	private string evenPathToGoal, oddPathToGoal;
+
+    private string evenPathToGoal, oddPathToGoal;
 	private enum MoveResult
 	{ 
 		BellStrike,
@@ -104,7 +105,6 @@ public class Wanderlust : MonoBehaviour
 	void Awake()
 	{
         moduleSolved = false;
-        
 
         buttonL.OnInteract += delegate () { Move(Face.Left, cube.Left, buttonL); return false; };
 		buttonR.OnInteract += delegate () { Move(Face.Right, cube.Right, buttonR); return false; };
@@ -126,6 +126,11 @@ public class Wanderlust : MonoBehaviour
 	void Start()
 	{
 		SetUpModule();
+        statusPosition = (StatusLightPosition)Rnd.Range(0, 4);
+        if (debugMode)
+        {
+            statusPosition = debugStatusPosition;
+        }
 
     }
 
@@ -155,11 +160,6 @@ public class Wanderlust : MonoBehaviour
         }
         keys = new List<Key>();
         bellRingCount = 0;
-        StatusLightPosition statusPosition = (StatusLightPosition)Rnd.Range(0, 4);
-        if (debugMode)
-        {
-            statusPosition = debugStatusPosition;
-        }
         string statusPositionStr = "";
         string[] statusLightPair = null;
         switch (statusPosition)
@@ -202,10 +202,6 @@ public class Wanderlust : MonoBehaviour
 
             //store for logging purposes
             indexCalculationLogs.Add(string.Format("{0} | Row: ({1} + {2}) % 4 = {3} | Col: ({4} - {5}) % 3 = {6}", edgeworkGrid[Row, Column], SerialNumberToNum[i], BatteryNum, Column, SerialNumberToNum[i], PortNum, Row));
-        }
-        for (int i = 0; i < pairs.Count; i++)
-        {
-            Log(string.Format("Pair {0}: {1},{2}", i + 1, pairs[i][0], pairs[i][1]));
         }
 
         Log(string.Format("Status Light is in the {0} conrner.", statusPositionStr));
@@ -834,68 +830,74 @@ public class Wanderlust : MonoBehaviour
 		{
 			string faces = match.Groups[1].Value;
 			for (int i = 0; i < faces.Length; i++)
-			{ 
+			{
 				char c = faces[i];
 				KMSelectable button = null;
 				Face globalFace = Face.Up; //value don't matter
-                switch (c)
-                {
-                    case 'L':
+				switch (c)
+				{
+					case 'L':
 						globalFace = cube.Left;
 						button = buttonL;
-                        break;
-                    case 'R':
-                        globalFace = cube.Right;
-                        button = buttonR;
-                        break;
-                    case 'U':
-                        globalFace = cube.Up;
-                        button = buttonU;
-                        break;
-                    case 'D':
-                        globalFace = cube.Down;
-                        button = buttonD;
-                        break;
-                    case 'F':
-                        globalFace = cube.Front;
-                        button = buttonF;
-                        break;
-                    case 'B':
-                        globalFace = cube.Back;
-                        button = buttonB;
-                        break;
-                }
+						break;
+					case 'R':
+						globalFace = cube.Right;
+						button = buttonR;
+						break;
+					case 'U':
+						globalFace = cube.Up;
+						button = buttonU;
+						break;
+					case 'D':
+						globalFace = cube.Down;
+						button = buttonD;
+						break;
+					case 'F':
+						globalFace = cube.Front;
+						button = buttonF;
+						break;
+					case 'B':
+						globalFace = cube.Back;
+						button = buttonB;
+						break;
+				}
 
-                bool strikeIncoming = GetMoveResult(globalFace).ToString().Contains("Strike");
+				bool strikeIncoming = GetMoveResult(globalFace).ToString().Contains("Strike");
 
-                if (strikeIncoming)
-                    yield return string.Format("strikemessage The {0} press ({1}) caused the strike", Ordinal(i + 1), c);
+				if (strikeIncoming)
+					yield return string.Format("strikemessage The {0} press ({1}) caused the strike", Ordinal(i + 1), c);
 
-                button.OnInteract();
+				button.OnInteract();
 
-                if (strikeIncoming)
-                    yield break;
+				if (strikeIncoming)
+					yield break;
 
-                yield return new WaitForSeconds(0.1f);
-            }
-            yield break;
+				yield return new WaitForSeconds(0.1f);
+			}
+			yield break;
 		}
+
+		else if (Match(Command, "RESET").Success)
+		{
+            statusLightKMS.OnInteract();
+            yield return new WaitUntil(() => resetSoundPlayed);
+            statusLightKMS.OnInteractEnded();
+        }
+
 		else
 		{
 			yield return string.Format("sendtochaterror Invalid Command: {0}", Command);
-            yield break;
+			yield break;
 		}
 
 	}
     IEnumerator TwitchHandleForcedSolve()
 	{
-		//reset the module
-		statusLightKMS.OnInteract();
-		yield return new WaitUntil(() => resetSoundPlayed);
-        statusLightKMS.OnInteractEnded();
+        //reset the module
+        yield return ProcessTwitchCommand("RESET");
 
-		//get the local list of moves for keys and start position
-		for (int i = 0; i < 4; i++)
+        //get the local list of moves for keys and start position
+        for (int i = 0; i < 4; i++)
 		{
 			yield return new WaitForSeconds(0.1f);
 			bool evenMods = Bomb.GetSolvedModuleIDs().Count() % 2 == 0;
