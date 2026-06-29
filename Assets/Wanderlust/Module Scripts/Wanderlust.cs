@@ -126,13 +126,12 @@ public class Wanderlust : MonoBehaviour
 	}
 	void Start()
 	{
-		SetUpModule();
         statusPosition = (StatusLightPosition)Rnd.Range(0, 4);
         if (debugMode)
         {
             statusPosition = debugStatusPosition;
         }
-
+        SetUpModule();
     }
 
 	void Update()
