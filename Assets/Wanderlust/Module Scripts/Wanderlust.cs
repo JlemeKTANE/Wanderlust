@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using Rnd = UnityEngine.Random;
@@ -204,7 +205,7 @@ public class Wanderlust : MonoBehaviour
             indexCalculationLogs.Add(string.Format("{0} | Row: ({1} + {2}) % 4 = {3} | Col: ({4} - {5}) % 3 = {6}", edgeworkGrid[Row, Column], SerialNumberToNum[i], BatteryNum, Column, SerialNumberToNum[i], PortNum, Row));
         }
 
-        Log(string.Format("Status Light is in the {0} conrner.", statusPositionStr));
+        Log(string.Format("Status Light is in the {0} corner.", statusPositionStr));
         if (statusLightPair != null)
         {
             Log(string.Format("Letter Pair 1: {0}, {1}", statusLightPair[0], statusLightPair[1]));
@@ -600,7 +601,7 @@ public class Wanderlust : MonoBehaviour
 
     private string LogPathVariant(string label, List<Face> path, bool logAbbreviated, bool copyToKeyboard)
     {
-        Log(label + ": " + Join(path));
+        Log(label + ": " + FacesToString(path));
 
         string abbreviation = Join(path.Select(p => "" + p.ToString()[0]), "");
 
@@ -617,10 +618,23 @@ public class Wanderlust : MonoBehaviour
 
 		return abbreviation;
     }
-
-    private string Join(IEnumerable<Face> collection, string seperator = ", ")
+    private string FacesToString(IEnumerable<Face> collection)
     {
-        return Join(collection.Select(f => f.ToString()), seperator);
+		string str = "";
+        int count = 0;
+
+        foreach (Face face in collection)
+        {
+            str += face.ToString()[0];
+            count++;
+
+            if (count % 3 == 0)
+            {
+				str += " ";
+            }
+        }
+
+		return str.Trim();
     }
 
     private string Join(IEnumerable<string> collection, string seperator = ", ")
@@ -823,6 +837,7 @@ public class Wanderlust : MonoBehaviour
         Command = Command.ToUpper().Trim();
 		yield return null;
 
+
 		//Press face
 		Match match = Match(Command, @"^([LRUDFB]+)$");
 
@@ -897,24 +912,17 @@ public class Wanderlust : MonoBehaviour
         yield return ProcessTwitchCommand("RESET");
 
         //get the local list of moves for keys and start position
+        bool evenMods = Bomb.GetSolvedModuleIDs().Count() % 2 == 0;
         for (int i = 0; i < 4; i++)
 		{
 			yield return new WaitForSeconds(0.1f);
-			bool evenMods = Bomb.GetSolvedModuleIDs().Count() % 2 == 0;
 			string path = evenMods ? evenPathToGoal : oddPathToGoal;
 			yield return ProcessTwitchCommand(path);
         }
-
 
         while (!moduleSolved)
         {
             yield return null;
         }
-    }
-
-	//helper function to copy the tp path to clipboard
-    public void CopyTextToClipboard(string textToCopy)
-    {
-        
     }
 }
