@@ -23,7 +23,7 @@ public class Wanderlust : MonoBehaviour
 
     [Header("Debug Mode")]
     [SerializeField]
-    private readonly bool debugMode;
+    private bool debugMode;
     [SerializeField]
     private StatusLightPosition debugStatusPosition;
 
