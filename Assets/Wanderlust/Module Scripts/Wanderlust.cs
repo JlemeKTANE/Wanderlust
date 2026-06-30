@@ -398,10 +398,6 @@ public class Wanderlust : MonoBehaviour
 
 				Log(string.Format("Rang the bell. This is the {0} time", Ordinal(bellRingCount)));
 
-				currentMazeIndex = GetMazeIndex(SerialNumberToNum, bellRingCount);
-
-				Log(string.Format("Now in maze {0}", currentMazeIndex));
-
 				string[] bellPair = GetBellRotationPair(currentCell.Row, localInputs);
 
 				if (localInputs.Count == 1)
@@ -413,7 +409,7 @@ public class Wanderlust : MonoBehaviour
 					Log(string.Format("Second to last local input was {0}", localInputs[localInputs.Count - 2].ToString().ToLower()));
 				}
 
-				Log(string.Format("The bell rang is in row {0} which corresponds to {1}", currentCell.Row, (Face)currentCell.Row).ToString());
+				Log(string.Format("The bell rang is in row {0} which corresponds to {1}", currentCell.Row, ((Face)currentCell.Row).ToString().ToLower()));
 				Log(string.Format("Rotating {0} and {1}", bellPair[0], bellPair[1]));
 
 				int solvedModNum = Bomb.GetSolvedModuleIDs().Count;
@@ -423,7 +419,11 @@ public class Wanderlust : MonoBehaviour
 				cube.Rotate(bellPair[0], bellPair[1], solvedModNum % 2 == 0);
 
 				Log("Current Cube Orientation\n" + cube);
-				break;
+
+                currentMazeIndex = GetMazeIndex(SerialNumberToNum, bellRingCount);
+
+                Log(string.Format("Now in maze {0}", currentMazeIndex));
+                break;
 
 			case MoveResult.CollectKey:
 				Log(string.Format("Collected the {0} key", Ordinal(keyIndex + 1)));
