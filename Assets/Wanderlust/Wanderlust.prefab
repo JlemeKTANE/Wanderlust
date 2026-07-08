@@ -1520,8 +1520,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e77afd1685d624e4bbb35e40fa69bcc8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  debugMode: 0
-  debugStatusPosition: 0
+  debugMode: 1
+  debugStatusPosition: 3
+  bellSound: {fileID: 8300000, guid: acc2ac00659805842a6ff81a8bfc6076, type: 3}
+  resetSound: {fileID: 8300000, guid: 8d84bcdf899d49a43afdbc179c336db1, type: 3}
+  solveSounds:
+  - {fileID: 8300000, guid: d27267587ae951a4ba6236403158c1f5, type: 3}
+  - {fileID: 8300000, guid: c8757b14415e248439623f6342c73d04, type: 3}
+  collectKey: {fileID: 8300000, guid: 855e2b43caff984478b9272fe36da010, type: 3}
   statuslight: {fileID: 1240284373911368}
   buttonL: {fileID: 114059011101097104}
   buttonR: {fileID: 114364118096958504}
