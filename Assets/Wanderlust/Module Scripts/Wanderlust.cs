@@ -38,7 +38,10 @@ public class Wanderlust : MonoBehaviour
     private AudioClip collectKey;
 
 
+
+
     [Header("Module Stuff")]
+	private GameObject componentPuzzleBackground;
     public GameObject statuslight;
 	const float statusLightOffset = 0.075f;
 	const float statusDepthLightOffset = 0.0017f;
@@ -84,7 +87,6 @@ public class Wanderlust : MonoBehaviour
 	private float resetTimer = 0.0f;
 	StatusLightPosition statusPosition;
 
-
     private string evenPathToGoal, oddPathToGoal;
 	private enum MoveResult
 	{ 
@@ -116,7 +118,7 @@ public class Wanderlust : MonoBehaviour
 	void Awake()
 	{
         moduleSolved = false;
-
+        componentPuzzleBackground = transform.Find("Anoliary/Component Puzzle BG").gameObject;
         buttonL.OnInteract += delegate () { Move(Face.Left, cube.Left, buttonL); return false; };
 		buttonR.OnInteract += delegate () { Move(Face.Right, cube.Right, buttonR); return false; };
 		buttonU.OnInteract += delegate () { Move(Face.Up, cube.Up, buttonU); return false; };
@@ -178,16 +180,19 @@ public class Wanderlust : MonoBehaviour
                 statuslight.transform.localPosition = topLeftPosition;
                 statusLightPair = new string[] { "LU", "LL" };
                 statusPositionStr = "top left";
+                componentPuzzleBackground.transform.localEulerAngles = new Vector3(0, 90, 0);
                 break;
             case StatusLightPosition.BottomRight:
                 statuslight.transform.localPosition = bottomRightPosition;
                 statusLightPair = new string[] { "LU", "LR" };
                 statusPositionStr = "bottom right";
-                break;
+                componentPuzzleBackground.transform.localEulerAngles = new Vector3(0, 270, 0);
+				break;
             case StatusLightPosition.BottomLeft:
                 statuslight.transform.localPosition = bottomLeftPosition;
                 statusLightPair = new string[] { "LU", "LD" };
                 statusPositionStr = "bottom left";
+                componentPuzzleBackground.transform.localEulerAngles = new Vector3(0, 0, 0);
                 break;
             case StatusLightPosition.TopRight:
                 statusPositionStr = "top right";
