@@ -27,6 +27,16 @@ public class Wanderlust : MonoBehaviour
     [SerializeField]
     private StatusLightPosition debugStatusPosition;
 
+	[Header("Audio")]
+	[SerializeField]
+	private AudioClip bellSound;
+    [SerializeField]
+    private AudioClip resetSound;
+	[SerializeField]
+    private AudioClip[] solveSounds;
+    [SerializeField]
+    private AudioClip collectKey;
+
 
     [Header("Module Stuff")]
     public GameObject statuslight;
@@ -141,8 +151,8 @@ public class Wanderlust : MonoBehaviour
 			resetTimer += Time.deltaTime;
 			if (resetTimer >= 5)
 			{
-				//play reeset sound here
-				resetSoundPlayed = true;
+				Audio.PlaySoundAtTransform(resetSound.name, transform);
+                resetSoundPlayed = true;
 				Log("Status light was held for 5 seconds. Resetting the module...");
 				SetUpModule();
             }
@@ -395,8 +405,9 @@ public class Wanderlust : MonoBehaviour
 
 			case MoveResult.RingBell:
 				bellRingCount++;
+				Audio.PlaySoundAtTransform(bellSound.name, transform);
 
-				Log(string.Format("Rang the bell. This is the {0} time", Ordinal(bellRingCount)));
+                Log(string.Format("Rang the bell. This is the {0} time", Ordinal(bellRingCount)));
 
 				string[] bellPair = GetBellRotationPair(currentCell.Row, localInputs);
 
@@ -426,7 +437,8 @@ public class Wanderlust : MonoBehaviour
                 break;
 
 			case MoveResult.CollectKey:
-				Log(string.Format("Collected the {0} key", Ordinal(keyIndex + 1)));
+				Audio.PlaySoundAtTransform(collectKey.name, transform);
+                Log(string.Format("Collected the {0} key", Ordinal(keyIndex + 1)));
 
 				switch (keyIndex)
 				{
@@ -487,7 +499,8 @@ public class Wanderlust : MonoBehaviour
 
 			case MoveResult.SubmitStart:
 				Log("Moule Solved");
-				Module.HandlePass();
+				Audio.PlaySoundAtTransform(solveSounds.PickRandom().name, transform);
+                Module.HandlePass();
 				moduleSolved = true;
 				break;
 
