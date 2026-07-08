@@ -30,14 +30,14 @@ public class Wanderlust : MonoBehaviour
 
     [Header("Module Stuff")]
     public GameObject statuslight;
-    [SerializeField]
-    private Vector3 topLeftPosition;
-    [SerializeField]
-    private Vector3 bottomRightPosition;
-    [SerializeField]
-    private Vector3 bottomLeftPosition;
+	const float statusLightOffset = 0.075f;
+	const float statusDepthLightOffset = 0.0017f;
 
-	public KMSelectable buttonL, buttonR, buttonU, buttonD, buttonF, buttonB;
+    private static Vector3 topLeftPosition = new Vector3(-statusLightOffset, statusDepthLightOffset, statusLightOffset);
+    private static Vector3 bottomRightPosition = new Vector3(statusLightOffset, statusDepthLightOffset, -statusLightOffset);
+    private static Vector3 bottomLeftPosition = new Vector3(-statusLightOffset, statusDepthLightOffset, -statusLightOffset);
+
+    public KMSelectable buttonL, buttonR, buttonU, buttonD, buttonF, buttonB;
 	private KMSelectable statusLightKMS;
 
 	private string SerialNumber;
@@ -229,10 +229,10 @@ public class Wanderlust : MonoBehaviour
         currentRow = startingRow;
         startingMazeIndex = GetMazeIndex(SerialNumberToNum, bellRingCount);
         currentMazeIndex = startingMazeIndex;
-        Log(string.Format("Starting in maze {0} at {1}", currentMazeIndex, GetBattshipCoorinate(startingRow, startingCol)));
         GenerateKeyLocation();
         LogKey(0);
         Key key = keys[0];
+        Log(string.Format("Starting in maze {0} at {1}", currentMazeIndex, GetBattshipCoorinate(startingRow, startingCol)));
         GetPathToGoal(currentMazeIndex, key.MazeNum, bellRingCount, mazes[currentMazeIndex].grid[currentRow, currentCol], mazes[key.MazeNum].grid[key.Row, key.Col], cube, "One path to the key:");
     }
 
