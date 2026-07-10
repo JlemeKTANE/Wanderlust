@@ -127,8 +127,8 @@ public class Wanderlust : MonoBehaviour
 		buttonB.OnInteract += delegate () { Move(Face.Back, cube.Back, buttonB); return false; };
 
         statusLightKMS = statuslight.GetComponent<KMSelectable>();
-        statusLightKMS.OnInteract += delegate () { statusHeld = true; return false;  };
-        statusLightKMS.OnInteractEnded += delegate () { statusHeld = false; resetTimer = 0.0f; resetSoundPlayed = false;  };
+        statusLightKMS.OnInteract += delegate () { statusHeld = true; resetSoundPlayed = false; resetTimer = 0.0f; return false;  };
+        statusLightKMS.OnInteractEnded += delegate () { statusHeld = false;  };
 
         Bomb = GetComponent<KMBombInfo>();
 		Audio = GetComponent<KMAudio>();
@@ -151,7 +151,7 @@ public class Wanderlust : MonoBehaviour
 		if (statusHeld && !resetSoundPlayed)
 		{
 			resetTimer += Time.deltaTime;
-			if (resetTimer >= 5)
+			if (resetTimer >= 5f)
 			{
 				Audio.PlaySoundAtTransform(resetSound.name, transform);
                 resetSoundPlayed = true;

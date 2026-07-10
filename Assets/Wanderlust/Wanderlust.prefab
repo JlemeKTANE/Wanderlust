@@ -93,7 +93,7 @@ GameObject:
   - component: {fileID: 4388715391362058}
   - component: {fileID: 64864717047921378}
   m_Layer: 0
-  m_Name: KMS Collider
+  m_Name: Status Light Collider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -393,7 +393,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1790015728182488}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.017, z: 0}
+  m_LocalPosition: {x: 0, y: 0.02, z: 0}
   m_LocalScale: {x: 0.020478584, y: 0.0013000447, z: 0.020478584}
   m_Children: []
   m_Father: {fileID: 4814606217149342}
@@ -446,7 +446,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1311176337409658}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.0189, z: 0}
+  m_LocalPosition: {x: 0, y: 0.0204, z: 0}
   m_LocalScale: {x: 0.032059766, y: 0.0020352544, z: 0.032059763}
   m_Children: []
   m_Father: {fileID: 4814606217149342}
@@ -1520,8 +1520,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e77afd1685d624e4bbb35e40fa69bcc8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  debugMode: 1
-  debugStatusPosition: 3
+  debugMode: 0
+  debugStatusPosition: 1
   bellSound: {fileID: 8300000, guid: acc2ac00659805842a6ff81a8bfc6076, type: 3}
   resetSound: {fileID: 8300000, guid: 8d84bcdf899d49a43afdbc179c336db1, type: 3}
   solveSounds:
@@ -1580,6 +1580,7 @@ MonoBehaviour:
   - {fileID: 114474577414052064}
   - {fileID: 114622924072383280}
   - {fileID: 114555729706799942}
+  - {fileID: 114703918831541060}
   IsPassThrough: 0
   ChildRowLength: 0
   Highlight: {fileID: 114580527122939568}
@@ -1844,7 +1845,7 @@ MonoBehaviour:
   m_Script: {fileID: 1702003387, guid: 45b809be76fd7a3468b6f517bced6f28, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Parent: {fileID: 0}
+  Parent: {fileID: 114307003432261670}
   Children: []
   IsPassThrough: 0
   ChildRowLength: 0
@@ -1904,7 +1905,7 @@ MonoBehaviour:
   m_Script: {fileID: -119419473, guid: 45b809be76fd7a3468b6f517bced6f28, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ModuleType: wanderlust
+  ModuleType: Wanderlust
   ModuleDisplayName: Wanderlust
   RequiresTimerVisibility: 1
 --- !u!114 &114948815178210938

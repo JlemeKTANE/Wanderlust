@@ -14,7 +14,7 @@ MonoBehaviour:
   id: Wanderlust
   title: Wanderlust
   author: e
-  description: Change this to be the description of the module
+  description: Navigate through multiple mazes while figuring out how to do so.
   version: 
   outputFolder: build
-  previewImage: {fileID: 0}
+  previewImage: {fileID: 2800000, guid: 6add39ef89457934483df819a2258d49, type: 3}
