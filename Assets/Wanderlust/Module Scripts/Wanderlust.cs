@@ -119,12 +119,18 @@ public class Wanderlust : MonoBehaviour
 	{
         moduleSolved = false;
         componentPuzzleBackground = transform.Find("Anoliary/Component Puzzle BG").gameObject;
-        buttonL.OnInteract += delegate () { Move(Face.Left, cube.Left, buttonL); return false; };
-		buttonR.OnInteract += delegate () { Move(Face.Right, cube.Right, buttonR); return false; };
-		buttonU.OnInteract += delegate () { Move(Face.Up, cube.Up, buttonU); return false; };
-		buttonD.OnInteract += delegate () { Move(Face.Down, cube.Down, buttonD); return false; };
-		buttonF.OnInteract += delegate () { Move(Face.Front, cube.Front, buttonF); return false; };
-		buttonB.OnInteract += delegate () { Move(Face.Back, cube.Back, buttonB); return false; };
+        KMSelectable btnL = buttonL;
+        buttonL.OnInteract += delegate () { Move(Face.Left, cube.Left, btnL); return false; };
+        KMSelectable btnR = buttonR;
+        buttonR.OnInteract += delegate () { Move(Face.Right, cube.Right, btnR); return false; };
+        KMSelectable btnU = buttonU;
+		buttonU.OnInteract += delegate () { Move(Face.Up, cube.Up, btnU); return false; };
+        KMSelectable btnD = buttonD;
+        buttonD.OnInteract += delegate () { Move(Face.Down, cube.Down, btnD); return false; };
+        KMSelectable btnF = buttonF;
+        buttonF.OnInteract += delegate () { Move(Face.Front, cube.Front, btnF); return false; };
+        KMSelectable btnB = buttonB;
+        buttonB.OnInteract += delegate () { Move(Face.Back, cube.Back, btnB); return false; };
 
         statusLightKMS = statuslight.GetComponent<KMSelectable>();
         statusLightKMS.OnInteract += delegate () { statusHeld = true; resetSoundPlayed = false; resetTimer = 0.0f; return false;  };
