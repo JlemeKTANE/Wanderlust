@@ -20157,17 +20157,18 @@ MonoBehaviour:
   TwoFactorWidget: {fileID: 114885870854110436}
   CustomWidget: {fileID: 114213089377510072}
   HighlightPrefab: {fileID: 100000, guid: d78a484c6e87f1b47b6596ac080fe942, type: 2}
-  AudioVolume: 0.25
+  AudioVolume: 1
   AudioClips:
   - {fileID: 8300000, guid: acc2ac00659805842a6ff81a8bfc6076, type: 3}
   - {fileID: 8300000, guid: 8d84bcdf899d49a43afdbc179c336db1, type: 3}
   - {fileID: 8300000, guid: d27267587ae951a4ba6236403158c1f5, type: 3}
   - {fileID: 8300000, guid: c8757b14415e248439623f6342c73d04, type: 3}
+  - {fileID: 8300000, guid: 855e2b43caff984478b9272fe36da010, type: 3}
   StrikeCount: 3
   TimeLimit: 600
   BombSize: 1
   FrontFaceOnly: 1
-  EdgeworkConfiguration: {fileID: 11400000, guid: 4b677b9dadb43734fa57f97130fc8d7c,
+  EdgeworkConfiguration: {fileID: 11400000, guid: 99d1d17e35146244b9a0795191718661,
     type: 2}
   TwitchPlaysActive: 1
   TwitchPlaysMode: 0

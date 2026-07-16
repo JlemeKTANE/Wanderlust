@@ -1519,7 +1519,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e77afd1685d624e4bbb35e40fa69bcc8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  debugMode: 0
+  debugModeEnabled: 0
   debugStatusPosition: 1
   bellSound: {fileID: 8300000, guid: acc2ac00659805842a6ff81a8bfc6076, type: 3}
   resetSound: {fileID: 8300000, guid: 8d84bcdf899d49a43afdbc179c336db1, type: 3}

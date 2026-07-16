@@ -23,7 +23,7 @@ public class Wanderlust : MonoBehaviour
 
     [Header("Debug Mode")]
     [SerializeField]
-    private bool debugMode;
+    private bool debugModeEnabled;
     [SerializeField]
     private StatusLightPosition debugStatusPosition;
 
@@ -145,7 +145,7 @@ public class Wanderlust : MonoBehaviour
 	void Start()
 	{
         statusPosition = (StatusLightPosition)Rnd.Range(0, 4);
-        if (debugMode)
+        if (debugModeEnabled)
         {
             statusPosition = debugStatusPosition;
         }
@@ -278,7 +278,8 @@ public class Wanderlust : MonoBehaviour
 			case 1:
 			case 2:
 				mazeNum = bellRingCount % 13;
-				row = (int)cube.GetLocalFaceOfGlobalFace(Face.Front);
+				//Can't use "(int)cube.GetLocalFaceOfGlobalFace(Face.Front)" due to the cube rotating/swapping before this generation
+                row = (int)localInputs.Last();
 				column = (localInputs.Count() - bellRingCount - keyIndex) % 6;
 				break;
 
@@ -629,7 +630,7 @@ public class Wanderlust : MonoBehaviour
         string abbreviation = Join(path.Select(p => "" + p.ToString()[0]), "");
 
         //copy to keybaord for tp
-        if (logAbbreviated && debugMode)
+        if (logAbbreviated && debugModeEnabled)
 		{
             Debug.Log(abbreviation);
 
